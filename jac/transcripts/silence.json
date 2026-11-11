@@ -1,0 +1,6 @@
+{
+  "question": "Two Sum: Given an array of integers and a target, return the indices of the two numbers that add up to the target. Assume exactly one solution exists.",
+  "hints_used": 0,
+  "interviewer_lines": ["Hi! Let's do Two Sum. What are your first thoughts?"],
+  "candidate_records": []
+}
