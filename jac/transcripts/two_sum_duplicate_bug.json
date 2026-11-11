@@ -1,0 +1,12 @@
+{
+  "question": "Two Sum: Given an array of integers and a target, return the indices of the two numbers that add up to the target. Assume exactly one solution exists.",
+  "hints_used": 1,
+  "interviewer_lines": [
+    "Hi! Let's do Two Sum. What are your first thoughts?",
+    "Walk me through your code on [3, 3] with target 6."
+  ],
+  "candidate_records": [
+    {"record_id": "T1", "kind": "said", "text": "I'll store each number in a dictionary and look for the complement."},
+    {"record_id": "C1", "kind": "code", "text": "def two_sum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        seen[num] = i\n        if target - num in seen:\n            return [seen[target - num], i]"}
+  ]
+}
