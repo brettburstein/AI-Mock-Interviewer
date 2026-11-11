@@ -1,0 +1,9 @@
+# byLLM settings for the grader.
+# Pull the model on the demo computer BEFORE presenting:  ollama pull llama3.1:8b
+# Any Ollama model works; change the name here if the group picks a different one.
+
+[plugins.byllm.model]
+default_model = "ollama/llama3.1:8b"
+
+[plugins.byllm.call_params]
+temperature = 0.0
