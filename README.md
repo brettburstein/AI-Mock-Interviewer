@@ -1,4 +1,4 @@
-# AI Mock Interviewer - EECS 449 Group 7
+# AI Mock Interviewer — EECS 449 Group 7
 
 A voice-driven mock coding interviewer for practicing data structures and algorithms. You pick a question, talk through your solution (using your device's dictation), optionally write code, ask for hints, and get graded at the end. Every score is tied to something you actually said or wrote.
 
@@ -9,7 +9,11 @@ Team: Anik, Brett, Dylan, Nick
 | File | What it is |
 | --- | --- |
 | `index.html` | The current MVP: the whole interviewer in one page. It runs as a Claude artifact and calls the model through `window.claude`. |
-| `tests/citationCheck.test.js` | Tests for the citation check. Run with `node tests/citationCheck.test.js`. |
+| `tests/citationCheck.test.js` | Tests for the web app's citation check. Run with `node tests/citationCheck.test.js`. |
+| `jac/grader.jac` | The grader in Jac. byLLM fills in a typed `GradeReport`, and plain Jac code checks every citation. Runs on a local model through Ollama. |
+| `jac/test_grader.jac` | Jac tests for the grader (no model needed). Run with `jac test test_grader.jac` from the `jac` folder. |
+| `jac/transcripts/` | Sample interviews: a correct two-sum, the duplicate-input bug, and silence. |
+| `jac/jac.toml` | byLLM settings: which Ollama model to use, temperature 0. |
 
 ## How grading works
 
@@ -21,9 +25,35 @@ Team: Anik, Brett, Dylan, Nick
 
 The report includes the full interview record with IDs, and each evidence quote links to its record.
 
+## Running the Jac grader
+
+One-time setup:
+
+```
+pip install jaclang byllm
+ollama pull llama3.1:8b        # or whatever model you set in jac/jac.toml
+```
+
+Then, from the `jac` folder, with Ollama running:
+
+```
+jac run grader.jac transcripts/two_sum_correct.json
+```
+
+To grade a real interview from the web app, finish it, click **Copy transcript for Jac grader**, paste into a new `.json` file in `jac/transcripts/`, and run the grader on that file.
+
+How it works:
+
+- `grade_interview(...) -> GradeReport by llm()` gets a typed result back: five `DimensionGrade`s, each with `status` (`SCORED` or `NOT_DEMONSTRATED`), `score`, `evidence_id`, `excerpt`, `comment`, and `practice_suggestion`. byLLM retries on its own if the output doesn't fit the types.
+- `check_citation` is plain Jac: the ID has to be a real candidate record, and the excerpt has to be in it. If anything fails, `regrade_interview` gets one retry with the exact failures. Anything still failing is printed as NOT SHOWN.
+- An interview where the candidate said nothing never calls the model.
+- The rubric and rules live in the `sem grade_interview` string, because that's what reaches the model. (We checked: `sem` notes on nested object fields and enum fields don't make it into what byLLM sends.)
+
+Built and tested with jaclang 0.16.7 and byllm 0.6.19. Not yet run against a real Ollama model.
+
 ## Tests
 
-`node tests/citationCheck.test.js` covers the three cases from our TA's guide:
+Both test suites cover the three cases from our TA's guide. `node tests/citationCheck.test.js` (web app) and `jac test test_grader.jac` (Jac grader, 15 tests, uses byLLM's mock model instead of a real one):
 
 - a correct two-sum explanation (real quotes pass; paraphrases, wrong-turn citations, and interviewer lines fail)
 - a duplicate-input bug (`seen[num] = i` before the complement check; a real quote of the bug passes, a made-up claim fails)
@@ -33,6 +63,7 @@ The test pulls the check straight out of `index.html` (between the `CITATION CHE
 
 ## Still to do
 
-- Port the grading function to Jac with typed model outputs (Jac v0.39.2).
-- Run the interview and grading against a local model through Ollama for the demo, with the model downloaded ahead of time, and do a full dry run on the demo computer before presenting.
+- Pick the Ollama model, pull it on the demo computer ahead of time, and do a full dry run of interview plus Jac grading before presenting.
+- Connect the web app to the Jac grader directly (right now you copy the transcript over).
+- Move the interviewer itself to Jac + Ollama so the whole demo runs locally.
 - System design questions (DSA only for now).
