@@ -1,0 +1,15 @@
+{
+  "question": "Two Sum: Given an array of integers and a target, return the indices of the two numbers that add up to the target. Assume exactly one solution exists.",
+  "hints_used": 0,
+  "interviewer_lines": [
+    "Hi! Let's do Two Sum. What are your first thoughts?",
+    "Can you do better than that?",
+    "What about duplicates, like [3, 3] with target 6?"
+  ],
+  "candidate_records": [
+    {"record_id": "T1", "kind": "said", "text": "So um the brute force is two loops checking every pair, which is O of n squared."},
+    {"record_id": "T2", "kind": "said", "text": "Yeah I'd use a hash map from value to index. For each number I check if target minus the number is already in the map, and that lookup is O(1) on average, so overall it's O(n) time and O(n) space."},
+    {"record_id": "T3", "kind": "said", "text": "Duplicates are fine because I check for the complement before I insert the current number, so 3 won't match itself."},
+    {"record_id": "C1", "kind": "code", "text": "def two_sum(nums, target):\n    seen = {}\n    for i, num in enumerate(nums):\n        if target - num in seen:\n            return [seen[target - num], i]\n        seen[num] = i"}
+  ]
+}
