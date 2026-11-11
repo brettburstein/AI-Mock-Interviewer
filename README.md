@@ -1,4 +1,4 @@
-# AI Mock Interviewer — EECS 449 Group 7
+# AI Mock Interviewer - EECS 449 Group 7
 
 A voice-driven mock coding interviewer for practicing data structures and algorithms. You pick a question, talk through your solution (using your device's dictation), optionally write code, ask for hints, and get graded at the end. Every score is tied to something you actually said or wrote.
 
