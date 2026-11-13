@@ -8,7 +8,7 @@ Team: Anik, Brett, Dylan, Nick
 
 | File | What it is |
 | --- | --- |
-| `index.html` | The current MVP: the whole interviewer in one page. It runs as a Claude artifact and calls the model through `window.claude`. |
+| `index.html` | The current MVP: the whole interviewer in one page. It uses Claude inside an artifact, or local Ollama when served with `server.py`. |
 | `tests/citationCheck.test.js` | Tests for the web app's citation check. Run with `node tests/citationCheck.test.js`. |
 | `jac/grader.jac` | The grader in Jac. byLLM fills in a typed `GradeReport`, and plain Jac code checks every citation. Runs on a local model through Ollama. |
 | `jac/test_grader.jac` | Jac tests for the grader (no model needed). Run with `jac test test_grader.jac` from the `jac` folder. |
@@ -24,6 +24,17 @@ Team: Anik, Brett, Dylan, Nick
 5. **Read, not run.** The grader is told it never executed the code, and code evidence is labeled "read, not run" in the report.
 
 The report includes the full interview record with IDs, and each evidence quote links to its record.
+
+## Running the web app with local Ollama
+
+With Ollama running and Llama 3.1 8B installed:
+
+```
+ollama pull llama3.1:8b
+python3 server.py
+```
+
+Then open `http://127.0.0.1:8000`. The server also recognizes installed variants whose names begin with `llama3.1:8b-`. Set `OLLAMA_MODEL` to use a different model.
 
 ## Running the Jac grader
 
@@ -61,9 +72,11 @@ Both test suites cover the three cases from our TA's guide. `node tests/citation
 
 The test pulls the check straight out of `index.html` (between the `CITATION CHECK START` / `END` markers), so it tests the code that ships.
 
+The local server's model-tag resolution tests run with `python3 -m unittest tests/test_server.py`.
+
 ## Still to do
 
 - Pick the Ollama model, pull it on the demo computer ahead of time, and do a full dry run of interview plus Jac grading before presenting.
 - Connect the web app to the Jac grader directly (right now you copy the transcript over).
-- Move the interviewer itself to Jac + Ollama so the whole demo runs locally.
+- Optionally move the interviewer itself to Jac; the web app can now call Ollama through `server.py`.
 - System design questions (DSA only for now).
