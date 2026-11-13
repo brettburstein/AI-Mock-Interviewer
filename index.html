@@ -238,7 +238,7 @@ var candidateTurnCount = 0;
 var codeSnapshotCount = 0;
 var lastSavedCode = "";
 var hintsGiven = 0;
-var askClaude = null;
+var askModel = null;
 var isWaiting = false;
 
 var questionList = document.getElementById("questionList");
@@ -376,6 +376,48 @@ function selectQuestion(event) {
 function showAvailabilityNotice(message) {
   availabilityNotice.textContent = message;
   availabilityNotice.hidden = false;
+}
+
+function createOllamaClient(modelName) {
+  function request(messages, options) {
+    var requestOptions = options || {};
+    return fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: messages,
+        format: requestOptions.json ? "json" : undefined
+      })
+    }).then(function (response) {
+      return response.json().then(function (body) {
+        if (!response.ok) {
+          throw new Error(body.error || "Ollama request failed.");
+        }
+        return body;
+      });
+    }).then(function (body) {
+      var text = body.message.content;
+      if (requestOptions.onText) {
+        requestOptions.onText({ text: text });
+      }
+      return { text: text };
+    });
+  }
+
+  function client(messages, options) {
+    return request(messages, options);
+  }
+
+  client.json = function (prompt) {
+    return request([{ role: "user", content: prompt }], { json: true }).then(function (result) {
+      try {
+        return JSON.parse(result.text);
+      } catch (parseError) {
+        throw new Error(modelName + " returned invalid JSON: " + parseError.message);
+      }
+    });
+  };
+  return client;
 }
 
 function showError(message) {
@@ -523,15 +565,15 @@ function describeError(error) {
 }
 
 function askInterviewer() {
-  if (askClaude === null) {
-    showError("The AI interviewer only works when this page is opened in Claude.");
+  if (askModel === null) {
+    showError("The AI interviewer is not connected. Start the local server with python3 server.py and try again.");
     return;
   }
   clearError();
   setWaiting(true);
   var replyTextElement = addMessageBubble("interviewer", "Thinking…", "");
   replyTextElement.className = "thinking";
-  askClaude(buildConversationTurns(), {
+  askModel(buildConversationTurns(), {
     modelTier: "default",
     cache: false,
     onText: function (progress) {
@@ -725,14 +767,14 @@ function finishInterview() {
     renderReport(silentGrade, checkAllCitations(transcript, silentGrade, rubricDimensions));
     return;
   }
-  if (askClaude === null) {
-    showError("Grading only works when this page is opened in Claude.");
+  if (askModel === null) {
+    showError("The grader is not connected. Start the local server with python3 server.py and try again.");
     return;
   }
   clearError();
   setWaiting(true);
   var gradingNote = addMessageBubble("hint-note", "Grading your interview and checking every citation…", "");
-  askClaude.json(buildGradingPrompt(), { modelTier: "complex" }).then(function (firstGrade) {
+  askModel.json(buildGradingPrompt(), { modelTier: "complex" }).then(function (firstGrade) {
     var firstChecks = checkAllCitations(transcript, firstGrade, rubricDimensions);
     var failures = listFailedChecks(firstChecks, rubricDimensions);
     if (failures.length === 0) {
@@ -740,7 +782,7 @@ function finishInterview() {
     }
     // One retry: tell the grader exactly which citations failed.
     gradingNote.textContent = "Some citations didn't match the transcript. Asking the grader to fix them…";
-    return askClaude.json(buildRetryPrompt(failures), { modelTier: "complex" }).then(function (secondGrade) {
+    return askModel.json(buildRetryPrompt(failures), { modelTier: "complex" }).then(function (secondGrade) {
       return { grade: secondGrade, checks: checkAllCitations(transcript, secondGrade, rubricDimensions) };
     });
   }).then(function (outcome) {
@@ -1062,13 +1104,25 @@ renderQuestionList();
 if (window.claude && window.claude.use) {
   window.claude.use("sample").then(function (sampleFunction) {
     if (sampleFunction) {
-      askClaude = sampleFunction;
+      askModel = sampleFunction;
     } else {
       showAvailabilityNotice("The AI interviewer isn't available in this view. Open the page in Claude while signed in.");
     }
   });
 } else {
-  showAvailabilityNotice("The AI interviewer only runs when this page is opened in Claude.");
+  fetch("/api/status").then(function (response) {
+    return response.json().then(function (body) {
+      if (!response.ok) {
+        throw new Error(body.error || "Ollama is unavailable.");
+      }
+      return body;
+    });
+  }).then(function (status) {
+    askModel = createOllamaClient(status.model);
+    showAvailabilityNotice("Connected to local Ollama model: " + status.model);
+  }).catch(function (error) {
+    showAvailabilityNotice("Local AI is unavailable: " + error.message + " Start it with python3 server.py.");
+  });
 }
 </script>
 </body>
