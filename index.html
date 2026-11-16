@@ -1279,6 +1279,1256 @@ setUpSpeechRecognition();
   }
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--background); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.page { max-width: 860px; margin: 0 auto; padding: 28px 16px 64px; display: flex; flex-direction: column; gap: 22px; }
+header { display: flex; flex-direction: column; gap: 6px; border-bottom: 3px solid var(--highlight); padding-bottom: 16px; }
+h1 { font-family: var(--font-display); font-weight: 300; font-size: clamp(30px, 6vw, 44px); line-height: 1.1; margin: 0; }
+.tagline { color: var(--ink-soft); margin: 0; }
+h2 { font-family: var(--font-display); font-weight: 500; font-size: 20px; margin: 0; }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); font-weight: 600; }
+.question-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.question-option { text-align: left; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; cursor: pointer; font: inherit; display: flex; flex-direction: column; gap: 4px; }
+.question-option:hover { border-color: var(--accent); }
+.question-option[aria-pressed="true"] { border: 2px solid var(--accent); background: var(--surface-strong); }
+.question-option strong { font-family: var(--font-display); font-weight: 500; font-size: 16px; }
+.difficulty { font-size: 12px; color: var(--ink-soft); }
+.question-card { background: var(--charcoal); color: var(--on-charcoal); border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px; }
+.question-card .label { color: var(--highlight); }
+.question-card p { margin: 0; }
+.example { font-family: var(--font-mono); font-size: 13.5px; white-space: pre-wrap; opacity: 0.85; }
+.conversation { display: flex; flex-direction: column; gap: 12px; min-height: 120px; }
+.message { max-width: 85%; padding: 12px 15px; border-radius: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.message.interviewer { background: var(--surface); border: 1px solid var(--line); align-self: flex-start; }
+.message.candidate { background: var(--surface-strong); border: 1px solid var(--accent); align-self: flex-end; }
+.message.code { background: var(--charcoal); color: var(--on-charcoal); align-self: flex-end; font-family: var(--font-mono); font-size: 13px; max-width: 100%; }
+.message.hint-note { align-self: center; background: none; font-size: 13px; color: var(--ink-soft); padding: 2px; }
+.speaker { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); margin-bottom: 4px; }
+.message.code .speaker { color: var(--highlight); }
+.composer { display: flex; flex-direction: column; gap: 10px; position: sticky; bottom: 0; background: var(--background); padding-top: 8px; }
+textarea { width: 100%; min-height: 96px; resize: vertical; font: inherit; color: var(--ink); background: var(--surface-strong); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+textarea.code-box { font-family: var(--font-mono); font-size: 13.5px; min-height: 80px; }
+details.code-drawer summary { cursor: pointer; font-size: 13px; color: var(--ink-soft); }
+.button-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button.primary, button.secondary { font: inherit; font-weight: 600; border-radius: 999px; padding: 10px 18px; cursor: pointer; border: 1px solid transparent; }
+button.primary { background: var(--highlight); color: #2A2A2A; }
+button.secondary { background: none; color: var(--ink); border-color: var(--line); }
+button.listening { background: var(--weak); color: #FBF9F5; border-color: var(--weak); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.spacer { flex: 1; }
+.toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-soft); }
+.tip { font-size: 13px; color: var(--ink-soft); margin: 0; }
+.notice { background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; color: var(--ink-soft); }
+.notice.error { border-color: var(--weak); color: var(--weak); }
+.report { display: flex; flex-direction: column; gap: 18px; }
+.total { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.total-score { font-family: var(--font-display); font-size: 64px; font-weight: 300; line-height: 1; }
+.total-out-of { color: var(--ink-soft); }
+.rubric { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.rubric-item { background: var(--surface); border-radius: 10px; padding: 16px; border-top: 4px solid var(--highlight); display: flex; flex-direction: column; gap: 8px; }
+.rubric-item.not-demonstrated { border-top-color: var(--line); }
+.rubric-item.unverified { border-top-color: var(--weak); }
+.rubric-item h3 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 16px; display: flex; justify-content: space-between; gap: 8px; }
+.score-dots { display: flex; gap: 4px; }
+.score-dot { width: 18px; height: 6px; border-radius: 3px; background: var(--line); }
+.score-dot.filled { background: var(--accent); }
+.rubric-item p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+.evidence { margin: 0; padding: 8px 10px; border-left: 3px solid var(--accent); background: var(--surface-strong); border-radius: 0 6px 6px 0; font-size: 13.5px; overflow-wrap: anywhere; }
+.evidence a { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); text-decoration: none; margin-bottom: 2px; }
+.practice strong { color: var(--ink); }
+.status-note { font-size: 13px; color: var(--weak); }
+.feedback-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.feedback-columns ul { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.record-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.record { font-size: 13.5px; padding: 8px 10px; border-radius: 8px; background: var(--surface); white-space: pre-wrap; overflow-wrap: anywhere; }
+.record.code-record { font-family: var(--font-mono); font-size: 13px; }
+.record:target { outline: 2px solid var(--highlight); }
+.record-id { font-weight: 600; color: var(--accent); margin-right: 6px; }
+details.record-drawer summary { cursor: pointer; font-family: var(--font-display); font-weight: 500; font-size: 16px; }
+.thinking { color: var(--ink-soft); font-style: italic; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <span class="label">EECS 449 · Group 7</span>
+    <h1>Mock Interviewer</h1>
+    <p class="tagline">Pick a coding topic or a behavioral question, talk through your answer out loud, ask for a hint if you get stuck, and get graded at the end. Every score points back to something you said or wrote.</p>
+  </header>
+
+  <section id="setupSection" style="display:flex;flex-direction:column;gap:14px">
+    <h2>Coding topics</h2>
+    <p class="tip">Pick a topic and we'll write a new question for it when you start.</p>
+    <div class="question-list" id="codingQuestionList"></div>
+    <h2>Behavioral questions</h2>
+    <div class="question-list" id="behavioralQuestionList"></div>
+    <div class="button-row">
+      <button class="primary" id="startButton">Start interview</button>
+      <label class="toggle"><input type="checkbox" id="speakToggle" checked> Read interviewer replies aloud</label>
+    </div>
+    <p class="tip" id="voiceTip"></p>
+  </section>
+
+  <section id="interviewSection" style="display:flex;flex-direction:column;gap:18px" hidden>
+    <div class="question-card">
+      <span class="label" id="questionLabel"></span>
+      <p id="questionPrompt"></p>
+      <div class="example" id="questionExample"></div>
+    </div>
+    <div class="conversation" id="conversation" aria-live="polite"></div>
+    <div class="composer" id="composer">
+      <label for="answerBox" class="tip">Your answer</label>
+      <textarea id="answerBox" placeholder="Talk through your approach the way you would out loud…"></textarea>
+      <details class="code-drawer" id="codeDrawer">
+        <summary>Write code (optional)</summary>
+        <textarea id="codeBox" class="code-box" spellcheck="false" placeholder="Write or paste your code here. It's saved as a snapshot each time you send."></textarea>
+      </details>
+      <div class="button-row">
+        <button class="secondary" id="microphoneButton" hidden>Start talking</button>
+        <button class="primary" id="sendButton">Send</button>
+        <button class="secondary" id="hintButton">Ask for a hint</button>
+        <span class="spacer"></span>
+        <button class="secondary" id="finishButton">Finish and get graded</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="notice error" id="errorNotice" hidden></div>
+  <section id="reportSection" class="report" hidden></section>
+</div>
+
+<script>
+// ===== Settings =====
+// Every AI request goes through our Cloudflare proxy, so nobody needs their own key.
+var proxyUrl = "https://mock-interviewer-proxy.brettburstein01.workers.dev/";
+var interviewModel = "claude-sonnet-5-5";
+var gradingModel = "claude-sonnet-5-5";
+
+// Coding topics. When someone starts, the AI writes a new question for the topic they picked.
+var codingCategories = [
+  { id: "arrays-hashing", kind: "coding-category", title: "Arrays & Hashing", difficulty: "Hash maps, sets, counting" },
+  { id: "two-pointers", kind: "coding-category", title: "Two Pointers", difficulty: "Pairs, sorted arrays, in-place work" },
+  { id: "sliding-window", kind: "coding-category", title: "Sliding Window", difficulty: "Substrings, subarrays" },
+  { id: "stack", kind: "coding-category", title: "Stack", difficulty: "Matching, monotonic stacks" },
+  { id: "binary-search", kind: "coding-category", title: "Binary Search", difficulty: "Sorted data, search on answers" },
+  { id: "linked-list", kind: "coding-category", title: "Linked List", difficulty: "Pointers, reversal, cycles" },
+  { id: "trees", kind: "coding-category", title: "Trees", difficulty: "Binary trees, BSTs, traversals" },
+  { id: "heap", kind: "coding-category", title: "Heap / Priority Queue", difficulty: "Top K, scheduling, merging" },
+  { id: "graphs", kind: "coding-category", title: "Graphs", difficulty: "BFS, DFS, grids, topological sort" },
+  { id: "backtracking", kind: "coding-category", title: "Backtracking", difficulty: "Subsets, permutations, search" },
+  { id: "dynamic-programming", kind: "coding-category", title: "Dynamic Programming", difficulty: "Memoization, tabulation" },
+  { id: "greedy", kind: "coding-category", title: "Greedy", difficulty: "Local choices, scheduling" },
+  { id: "intervals", kind: "coding-category", title: "Intervals", difficulty: "Merging, overlaps, meeting rooms" },
+  { id: "tries", kind: "coding-category", title: "Tries", difficulty: "Prefixes, word search" },
+  { id: "bit-manipulation", kind: "coding-category", title: "Bit Manipulation", difficulty: "XOR, masks, counting bits" }
+];
+
+var starTip = "Tip: answer with STAR. Situation, Task, Action, Result.";
+
+var behavioralQuestionBank = [
+  {
+    id: "teammate-conflict",
+    kind: "behavioral",
+    title: "Disagreeing with a teammate",
+    difficulty: "Teamwork",
+    prompt: "Tell me about a time you disagreed with a teammate. How did you handle it, and what happened?",
+    example: starTip
+  },
+  {
+    id: "failure",
+    kind: "behavioral",
+    title: "A time you failed",
+    difficulty: "Self-awareness",
+    prompt: "Tell me about a time you failed or made a mistake. What did you do about it, and what did you learn?",
+    example: starTip
+  },
+  {
+    id: "proud-project",
+    kind: "behavioral",
+    title: "A project you're proud of",
+    difficulty: "Impact",
+    prompt: "Walk me through a project you're proud of. What was your role, and what made it a success?",
+    example: starTip
+  },
+  {
+    id: "tight-deadline",
+    kind: "behavioral",
+    title: "Working under a tight deadline",
+    difficulty: "Pressure",
+    prompt: "Tell me about a time you had to deliver something under a tight deadline. How did you prioritize?",
+    example: starTip
+  },
+  {
+    id: "taking-initiative",
+    kind: "behavioral",
+    title: "Taking initiative",
+    difficulty: "Leadership",
+    prompt: "Tell me about a time you took the lead on something without being asked to.",
+    example: starTip
+  }
+];
+
+var allChoices = codingCategories.concat(behavioralQuestionBank);
+
+// The five areas a coding interview is graded on.
+var codingRubric = [
+  { key: "understanding", title: "Understanding the problem", description: "Did they restate the problem, ask clarifying questions, and notice constraints and edge cases (empty input, duplicates, negatives)?" },
+  { key: "approach", title: "Explaining the approach", description: "Did they explain their thinking clearly and in order, the way an interviewer wants to hear it, and compare at least one alternative?" },
+  { key: "correctness", title: "Correctness", description: "Would the solution they described or wrote actually work, including edge cases?" },
+  { key: "complexity", title: "Time and space complexity", description: "Did they state the time and space complexity and justify it from how the solution works?" },
+  { key: "code", title: "Code", description: "If they wrote code: is it readable, and does it match the approach they described? Judge only from reading it." }
+];
+
+// The five areas a behavioral interview is graded on.
+var behavioralRubric = [
+  { key: "structure", title: "Story structure", description: "Did the answer follow a clear order (situation, task, action, result) that was easy to follow, without rambling?" },
+  { key: "situation", title: "Specific situation", description: "Did they describe one real, specific situation with enough context, instead of speaking in general terms like \"I usually\"?" },
+  { key: "actions", title: "Your actions", description: "Did they explain what they personally did and why, saying \"I\" rather than only \"we\"?" },
+  { key: "results", title: "Results", description: "Did they say how it turned out, ideally with a concrete outcome or number?" },
+  { key: "reflection", title: "Reflection", description: "Did they share what they learned or what they would do differently next time?" }
+];
+
+// Returns the rubric that matches the kind of question being asked.
+function getActiveRubric() {
+  if (selectedQuestion.kind === "behavioral") {
+    return behavioralRubric;
+  }
+  return codingRubric;
+}
+
+var maximumScorePerDimension = 5;
+
+// What the person clicked: a coding topic or a behavioral question.
+var selectedChoice = codingCategories[0];
+// The question actually being asked. For coding topics, the AI writes it when the interview starts.
+var selectedQuestion = null;
+// Titles of questions already written this visit, so the AI doesn't repeat itself.
+var generatedQuestionTitles = [];
+var transcript = [];
+var candidateTurnCount = 0;
+var codeSnapshotCount = 0;
+var lastSavedCode = "";
+var hintsGiven = 0;
+var isWaiting = false;
+var speechRecognizer = null;
+var isListening = false;
+
+var codingQuestionList = document.getElementById("codingQuestionList");
+var behavioralQuestionList = document.getElementById("behavioralQuestionList");
+var startButton = document.getElementById("startButton");
+var speakToggle = document.getElementById("speakToggle");
+var voiceTip = document.getElementById("voiceTip");
+var setupSection = document.getElementById("setupSection");
+var interviewSection = document.getElementById("interviewSection");
+var reportSection = document.getElementById("reportSection");
+var conversation = document.getElementById("conversation");
+var answerBox = document.getElementById("answerBox");
+var codeBox = document.getElementById("codeBox");
+var codeDrawer = document.getElementById("codeDrawer");
+var microphoneButton = document.getElementById("microphoneButton");
+var sendButton = document.getElementById("sendButton");
+var hintButton = document.getElementById("hintButton");
+var finishButton = document.getElementById("finishButton");
+var errorNotice = document.getElementById("errorNotice");
+var composer = document.getElementById("composer");
+
+// ===== Talking to the AI =====
+
+function callModel(modelName, conversationTurns, maximumTokens) {
+  var requestBody = { model: modelName, max_tokens: maximumTokens, messages: conversationTurns };
+  return fetch(proxyUrl, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(requestBody)
+  }).then(function (response) {
+    return response.json().then(function (responseData) {
+      if (!response.ok) {
+        var errorMessage = "The AI request failed (status " + response.status + ").";
+        if (responseData && responseData.error && responseData.error.message) {
+          errorMessage = responseData.error.message;
+        }
+        throw new Error(errorMessage);
+      }
+      var replyText = "";
+      var contentBlocks = responseData.content;
+      if (Array.isArray(contentBlocks)) {
+        for (var index = 0; index < contentBlocks.length; index++) {
+          if (contentBlocks[index].type === "text") {
+            replyText = replyText + contentBlocks[index].text;
+          }
+        }
+      }
+      return replyText;
+    });
+  });
+}
+
+// Pulls the JSON object out of the grader's reply, even if it added extra words around it.
+function parseJsonReply(replyText) {
+  var startIndex = replyText.indexOf("{");
+  var endIndex = replyText.lastIndexOf("}");
+  if (startIndex === -1 || endIndex === -1) {
+    throw new Error("The grader didn't return a readable report. Try finishing again.");
+  }
+  return JSON.parse(replyText.substring(startIndex, endIndex + 1));
+}
+
+function callGrader(promptText) {
+  return callModel(gradingModel, [{ role: "user", content: promptText }], 3000).then(parseJsonReply);
+}
+
+// ===== Citation check =====
+// Checks that each score points at a real candidate turn or code snapshot,
+// and that the quoted excerpt actually appears in that record.
+
+function normalizeForMatching(text) {
+  var normalized = String(text).toLowerCase();
+  normalized = normalized.replace(/[‘’]/g, "'");
+  normalized = normalized.replace(/[“”]/g, "\"");
+  normalized = normalized.replace(/\s+/g, " ");
+  return normalized.trim();
+}
+
+function trimEdgePunctuation(text) {
+  var trimmed = text.replace(/^[\s"'.,;:…-]+/, "");
+  trimmed = trimmed.replace(/[\s"'.,;:…-]+$/, "");
+  return trimmed;
+}
+
+function findEvidenceRecord(records, evidenceId) {
+  for (var index = 0; index < records.length; index++) {
+    var record = records[index];
+    var isCitable = record.speaker === "candidate" || record.speaker === "code";
+    if (isCitable && record.id === evidenceId) {
+      return record;
+    }
+  }
+  return null;
+}
+
+function checkCitation(records, dimensionResult) {
+  if (!dimensionResult || typeof dimensionResult !== "object") {
+    return { verified: false, reason: "The grader returned nothing for this area." };
+  }
+  if (dimensionResult.status === "not_demonstrated") {
+    return { verified: true, reason: "" };
+  }
+  if (dimensionResult.status !== "scored") {
+    return { verified: false, reason: "The grader returned an unknown status." };
+  }
+  var evidenceId = String(dimensionResult.evidenceId || "").trim();
+  var record = findEvidenceRecord(records, evidenceId);
+  if (record === null) {
+    return { verified: false, reason: "It cited \"" + evidenceId + "\", but there is no candidate turn or code snapshot with that ID." };
+  }
+  var excerpt = trimEdgePunctuation(normalizeForMatching(dimensionResult.excerpt || ""));
+  if (excerpt.length < 3) {
+    return { verified: false, reason: "It cited " + evidenceId + " without quoting anything from it." };
+  }
+  var recordText = normalizeForMatching(record.text);
+  if (recordText.indexOf(excerpt) === -1) {
+    return { verified: false, reason: "The quoted excerpt doesn't appear in " + evidenceId + "." };
+  }
+  return { verified: true, reason: "" };
+}
+
+function checkAllCitations(records, grade, dimensions) {
+  var checks = {};
+  var dimensionResults = {};
+  if (grade && grade.dimensions) {
+    dimensionResults = grade.dimensions;
+  }
+  for (var index = 0; index < dimensions.length; index++) {
+    var key = dimensions[index].key;
+    checks[key] = checkCitation(records, dimensionResults[key]);
+  }
+  return checks;
+}
+
+function listFailedChecks(checks, dimensions) {
+  var failures = [];
+  for (var index = 0; index < dimensions.length; index++) {
+    var key = dimensions[index].key;
+    if (!checks[key].verified) {
+      failures.push(key + ": " + checks[key].reason);
+    }
+  }
+  return failures;
+}
+
+// ===== Voice input =====
+
+function setUpSpeechRecognition() {
+  var RecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!RecognitionClass) {
+    voiceTip.textContent = "This browser can't listen to your mic directly, so use your device's dictation in the answer box (on a Mac, press Fn twice). Chrome and Edge support the built-in mic button.";
+    return;
+  }
+  voiceTip.textContent = "Use the \"Start talking\" button during the interview to answer out loud. Your words show up in the answer box so you can fix them before sending.";
+  speechRecognizer = new RecognitionClass();
+  speechRecognizer.continuous = true;
+  speechRecognizer.interimResults = false;
+  speechRecognizer.lang = "en-US";
+  speechRecognizer.onresult = function (event) {
+    for (var index = event.resultIndex; index < event.results.length; index++) {
+      if (event.results[index].isFinal) {
+        var spokenText = event.results[index][0].transcript.trim();
+        if (answerBox.value.trim() === "") {
+          answerBox.value = spokenText;
+        } else {
+          answerBox.value = answerBox.value.trim() + " " + spokenText;
+        }
+      }
+    }
+  };
+  speechRecognizer.onend = function () {
+    setListening(false);
+  };
+  speechRecognizer.onerror = function (event) {
+    setListening(false);
+    if (event.error === "not-allowed") {
+      showError("Mic access was blocked. Allow the microphone for this page, or type your answer instead.");
+    }
+  };
+  microphoneButton.hidden = false;
+}
+
+function setListening(listening) {
+  isListening = listening;
+  if (listening) {
+    microphoneButton.textContent = "Stop talking";
+    microphoneButton.className = "secondary listening";
+  } else {
+    microphoneButton.textContent = "Start talking";
+    microphoneButton.className = "secondary";
+  }
+}
+
+function toggleListening() {
+  if (speechRecognizer === null) {
+    return;
+  }
+  if (isListening) {
+    speechRecognizer.stop();
+    return;
+  }
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+  try {
+    speechRecognizer.start();
+    setListening(true);
+  } catch (startError) {
+    setListening(false);
+  }
+}
+
+function stopListening() {
+  if (speechRecognizer !== null && isListening) {
+    speechRecognizer.stop();
+  }
+}
+
+// ===== Interview =====
+
+function renderQuestionLists() {
+  renderQuestionButtons(codingCategories, codingQuestionList);
+  renderQuestionButtons(behavioralQuestionBank, behavioralQuestionList);
+}
+
+function renderQuestionButtons(questions, listElement) {
+  listElement.innerHTML = "";
+  for (var index = 0; index < questions.length; index++) {
+    var question = questions[index];
+    var optionButton = document.createElement("button");
+    optionButton.className = "question-option";
+    optionButton.type = "button";
+    optionButton.dataset.questionId = question.id;
+    if (question.id === selectedChoice.id) {
+      optionButton.setAttribute("aria-pressed", "true");
+    } else {
+      optionButton.setAttribute("aria-pressed", "false");
+    }
+    var titleElement = document.createElement("strong");
+    titleElement.textContent = question.title;
+    var difficultyElement = document.createElement("span");
+    difficultyElement.className = "difficulty";
+    difficultyElement.textContent = question.difficulty;
+    optionButton.appendChild(titleElement);
+    optionButton.appendChild(difficultyElement);
+    optionButton.addEventListener("click", selectQuestion);
+    listElement.appendChild(optionButton);
+  }
+}
+
+function selectQuestion(event) {
+  var questionId = event.currentTarget.dataset.questionId;
+  for (var index = 0; index < allChoices.length; index++) {
+    if (allChoices[index].id === questionId) {
+      selectedChoice = allChoices[index];
+    }
+  }
+  renderQuestionLists();
+}
+
+function showError(message) {
+  errorNotice.textContent = message;
+  errorNotice.hidden = false;
+}
+
+function clearError() {
+  errorNotice.hidden = true;
+  errorNotice.textContent = "";
+}
+
+function setWaiting(waiting) {
+  isWaiting = waiting;
+  sendButton.disabled = waiting;
+  hintButton.disabled = waiting;
+  finishButton.disabled = waiting;
+}
+
+function addMessageBubble(speaker, text, recordId) {
+  var bubble = document.createElement("div");
+  if (speaker === "interviewer") {
+    bubble.className = "message interviewer";
+  } else if (speaker === "candidate") {
+    bubble.className = "message candidate";
+  } else if (speaker === "code") {
+    bubble.className = "message code";
+  } else {
+    bubble.className = "message hint-note";
+  }
+  if (speaker === "interviewer" || speaker === "candidate" || speaker === "code") {
+    var speakerLabel = document.createElement("span");
+    speakerLabel.className = "speaker";
+    if (speaker === "interviewer") {
+      speakerLabel.textContent = "Interviewer";
+    } else if (speaker === "candidate") {
+      speakerLabel.textContent = "You · " + recordId;
+    } else {
+      speakerLabel.textContent = "Your code · " + recordId;
+    }
+    bubble.appendChild(speakerLabel);
+  }
+  var textElement = document.createElement("span");
+  textElement.textContent = text;
+  bubble.appendChild(textElement);
+  conversation.appendChild(bubble);
+  bubble.scrollIntoView({ block: "nearest" });
+  return textElement;
+}
+
+function speakAloud(text) {
+  if (!speakToggle.checked) {
+    return;
+  }
+  if (!("speechSynthesis" in window)) {
+    return;
+  }
+  try {
+    window.speechSynthesis.cancel();
+    var utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.03;
+    window.speechSynthesis.speak(utterance);
+  } catch (speechError) {
+    // Reading aloud is optional; the text is already on screen.
+  }
+}
+
+function addCandidateTurn(text) {
+  candidateTurnCount = candidateTurnCount + 1;
+  var recordId = "T" + candidateTurnCount;
+  transcript.push({ speaker: "candidate", id: recordId, text: text });
+  addMessageBubble("candidate", text, recordId);
+}
+
+// Saves the code box as a new snapshot, but only if it changed since the last one.
+function saveCodeSnapshotIfChanged() {
+  var currentCode = codeBox.value.replace(/\s+$/, "");
+  if (currentCode.trim() === "") {
+    return false;
+  }
+  if (currentCode === lastSavedCode) {
+    return false;
+  }
+  codeSnapshotCount = codeSnapshotCount + 1;
+  var recordId = "C" + codeSnapshotCount;
+  transcript.push({ speaker: "code", id: recordId, text: currentCode });
+  addMessageBubble("code", currentCode, recordId);
+  lastSavedCode = currentCode;
+  return true;
+}
+
+function buildInterviewerInstructions() {
+  if (selectedQuestion.kind === "behavioral") {
+    return buildBehavioralInterviewerInstructions();
+  }
+  return buildCodingInterviewerInstructions();
+}
+
+function buildBehavioralInterviewerInstructions() {
+  var instructions = "You are a friendly but realistic interviewer at a software company, running a spoken mock behavioral interview. ";
+  instructions = instructions + "The candidate is answering out loud, so their messages come from speech-to-text and may contain filler words or restarts. Read past that.\n\n";
+  instructions = instructions + "The question is: " + selectedQuestion.prompt + "\n\n";
+  instructions = instructions + "Rules:\n";
+  instructions = instructions + "- Keep every reply short: one to three sentences, since it will be read aloud.\n";
+  instructions = instructions + "- Ask one follow-up question at a time, the way a real interviewer would. Pick the most useful gap: missing context about the situation, what the candidate personally did (not the team), how it turned out, or what they learned.\n";
+  instructions = instructions + "- If they speak in general terms (\"I usually\", \"we always\"), ask them for one specific example.\n";
+  instructions = instructions + "- Never make up details about their story or answer for them.\n";
+  instructions = instructions + "- If they go quiet or say they're stuck, ask a simple guiding question, such as what the situation was or what their role was.\n";
+  instructions = instructions + "- When the candidate asks for a hint, give one small nudge about how to structure their story, such as starting with the situation, without telling them what to say.\n";
+  instructions = instructions + "- After two or three follow-ups, tell them they can finish whenever they're ready.\n";
+  instructions = instructions + "- Do not grade or score the candidate during the interview.\n";
+  instructions = instructions + "- Plain text only, no markdown.\n\n";
+  instructions = instructions + "Start now: greet the candidate in one sentence, ask them the question in plain words, and let them answer.";
+  return instructions;
+}
+
+function buildCodingInterviewerInstructions() {
+  var instructions = "You are a friendly but realistic technical interviewer at a software company, running a spoken mock coding interview. ";
+  instructions = instructions + "The candidate is answering out loud, so their messages come from speech-to-text and may contain filler words, restarts, or misspelled technical terms. Read past that.\n\n";
+  instructions = instructions + "The question is: " + selectedQuestion.title + "\n" + selectedQuestion.prompt + "\nExample:\n" + selectedQuestion.example + "\n\n";
+  instructions = instructions + "Rules:\n";
+  instructions = instructions + "- Keep every reply short: one to three sentences, since it will be read aloud.\n";
+  instructions = instructions + "- Never give away the full solution or write code for the candidate.\n";
+  instructions = instructions + "- Ask follow-up questions the way a real interviewer would. Pick the most useful gap: an unhandled edge case, a step they skipped explaining, or complexity they haven't stated or justified.\n";
+  instructions = instructions + "- If they share code, you can only read it, not run it. Ask them to walk through it on a small input, including an edge case such as duplicates or an empty input.\n";
+  instructions = instructions + "- If they go quiet or say they're stuck, ask a simple guiding question instead of moving on.\n";
+  instructions = instructions + "- When the candidate asks for a hint, give one small nudge only, smaller than the last hint you gave.\n";
+  instructions = instructions + "- Do not grade or score the candidate during the interview.\n";
+  instructions = instructions + "- Plain text only, no markdown.\n\n";
+  instructions = instructions + "Start now: greet the candidate in one sentence, read them the question in plain words, and ask them to talk through their first thoughts.";
+  return instructions;
+}
+
+function buildConversationTurns() {
+  var turns = [{ role: "user", content: buildInterviewerInstructions() }];
+  for (var index = 0; index < transcript.length; index++) {
+    var entry = transcript[index];
+    var role = "user";
+    var content = entry.text;
+    if (entry.speaker === "interviewer") {
+      role = "assistant";
+    }
+    if (entry.speaker === "hint-request") {
+      content = "(The candidate asks for a hint.)";
+    }
+    if (entry.speaker === "code") {
+      content = "(The candidate's current code, snapshot " + entry.id + ":)\n" + entry.text;
+    }
+    var lastTurn = turns[turns.length - 1];
+    if (lastTurn.role === role) {
+      lastTurn.content = lastTurn.content + "\n\n" + content;
+    } else {
+      turns.push({ role: role, content: content });
+    }
+  }
+  return turns;
+}
+
+function describeError(error) {
+  if (error && error.message) {
+    return "Something went wrong reaching the AI: " + error.message;
+  }
+  return "Something went wrong reaching the AI. Check your connection and try again.";
+}
+
+function askInterviewer() {
+  clearError();
+  setWaiting(true);
+  var replyTextElement = addMessageBubble("interviewer", "Thinking…", "");
+  replyTextElement.className = "thinking";
+  callModel(interviewModel, buildConversationTurns(), 400).then(function (replyText) {
+    var trimmedReply = replyText.trim();
+    replyTextElement.className = "";
+    replyTextElement.textContent = trimmedReply;
+    transcript.push({ speaker: "interviewer", id: "", text: trimmedReply });
+    speakAloud(trimmedReply);
+    setWaiting(false);
+    answerBox.focus();
+  }).catch(function (error) {
+    replyTextElement.parentElement.remove();
+    showError(describeError(error));
+    setWaiting(false);
+  });
+}
+
+// Asks the AI to write a new question for the chosen coding topic.
+function buildQuestionWriterPrompt(category) {
+  var prompt = "Write one original coding interview question for the topic \"" + category.title + "\" (" + category.difficulty + "). ";
+  prompt = prompt + "It should be Easy or Medium difficulty, the kind asked in a software engineering internship or new grad interview, and solvable in about 30 minutes.\n";
+  if (generatedQuestionTitles.length > 0) {
+    prompt = prompt + "Do not repeat any of these questions: " + generatedQuestionTitles.join(", ") + ".\n";
+  }
+  prompt = prompt + "Reply with JSON only, no other text, in exactly this shape:\n";
+  prompt = prompt + "{\"title\":\"short name\",\"difficulty\":\"Easy or Medium\",\"prompt\":\"the full question in two to four plain sentences\",\"example\":\"Input: ...\\nOutput: ...\"}";
+  return prompt;
+}
+
+function generateQuestion(category) {
+  var conversationTurns = [{ role: "user", content: buildQuestionWriterPrompt(category) }];
+  return callModel(interviewModel, conversationTurns, 600).then(parseJsonReply).then(function (written) {
+    if (!written || typeof written.title !== "string" || typeof written.prompt !== "string") {
+      throw new Error("The question didn't come back in the right format. Try starting again.");
+    }
+    var difficultyText = "Medium";
+    if (typeof written.difficulty === "string" && written.difficulty.trim() !== "") {
+      difficultyText = written.difficulty.trim();
+    }
+    var exampleText = "";
+    if (typeof written.example === "string") {
+      exampleText = written.example;
+    }
+    generatedQuestionTitles.push(written.title);
+    return {
+      id: category.id + "-" + generatedQuestionTitles.length,
+      kind: "coding",
+      title: written.title,
+      difficulty: difficultyText + " · " + category.title,
+      prompt: written.prompt,
+      example: exampleText
+    };
+  });
+}
+
+function startInterview() {
+  if (isWaiting) {
+    return;
+  }
+  clearError();
+  if (selectedChoice.kind === "coding-category") {
+    setWaiting(true);
+    startButton.disabled = true;
+    startButton.textContent = "Writing your question…";
+    generateQuestion(selectedChoice).then(function (question) {
+      selectedQuestion = question;
+      resetStartButton();
+      setWaiting(false);
+      beginInterview();
+    }).catch(function (error) {
+      resetStartButton();
+      setWaiting(false);
+      showError(describeError(error));
+    });
+    return;
+  }
+  selectedQuestion = selectedChoice;
+  beginInterview();
+}
+
+function resetStartButton() {
+  startButton.disabled = false;
+  startButton.textContent = "Start interview";
+}
+
+function beginInterview() {
+  transcript = [];
+  candidateTurnCount = 0;
+  codeSnapshotCount = 0;
+  lastSavedCode = "";
+  hintsGiven = 0;
+  conversation.innerHTML = "";
+  answerBox.value = "";
+  codeBox.value = "";
+  codeDrawer.open = false;
+  if (selectedQuestion.kind === "behavioral") {
+    codeDrawer.hidden = true;
+    answerBox.placeholder = "Tell your story the way you would out loud…";
+  } else {
+    codeDrawer.hidden = false;
+    answerBox.placeholder = "Talk through your approach the way you would out loud…";
+  }
+  document.getElementById("questionLabel").textContent = selectedQuestion.title + " · " + selectedQuestion.difficulty;
+  document.getElementById("questionPrompt").textContent = selectedQuestion.prompt;
+  document.getElementById("questionExample").textContent = selectedQuestion.example;
+  setupSection.hidden = true;
+  reportSection.hidden = true;
+  interviewSection.hidden = false;
+  composer.hidden = false;
+  askInterviewer();
+}
+
+function sendAnswer() {
+  if (isWaiting) {
+    return;
+  }
+  stopListening();
+  var answerText = answerBox.value.trim();
+  if (answerText !== "") {
+    addCandidateTurn(answerText);
+    answerBox.value = "";
+  }
+  var savedCode = saveCodeSnapshotIfChanged();
+  if (answerText === "" && !savedCode) {
+    showError("Say, type, or write some code first.");
+    return;
+  }
+  askInterviewer();
+}
+
+function requestHint() {
+  if (isWaiting) {
+    return;
+  }
+  stopListening();
+  var answerText = answerBox.value.trim();
+  if (answerText !== "") {
+    addCandidateTurn(answerText);
+    answerBox.value = "";
+  }
+  saveCodeSnapshotIfChanged();
+  hintsGiven = hintsGiven + 1;
+  transcript.push({ speaker: "hint-request", id: "", text: "Hint requested" });
+  addMessageBubble("hint-note", "You asked for hint " + hintsGiven, "");
+  askInterviewer();
+}
+
+// ===== Grading =====
+
+// Interviewer lines are context only. Only lines with an ID can be cited as evidence.
+function buildEvidenceText() {
+  var lines = [];
+  for (var index = 0; index < transcript.length; index++) {
+    var entry = transcript[index];
+    if (entry.speaker === "interviewer") {
+      lines.push("INTERVIEWER (context only, not citable): " + entry.text);
+    } else if (entry.speaker === "candidate") {
+      lines.push("[" + entry.id + "] CANDIDATE SAID: " + entry.text);
+    } else if (entry.speaker === "code") {
+      lines.push("[" + entry.id + "] CANDIDATE CODE SNAPSHOT:\n" + entry.text + "\n[end of " + entry.id + "]");
+    } else {
+      lines.push("(Candidate asked for a hint.)");
+    }
+  }
+  return lines.join("\n");
+}
+
+function buildGradingPrompt() {
+  var rubric = getActiveRubric();
+  var isBehavioral = selectedQuestion.kind === "behavioral";
+  var prompt = "";
+  if (isBehavioral) {
+    prompt = "You are grading a mock behavioral interview after it has ended. The candidate answered out loud, so their words come from speech-to-text. Ignore filler words and restarts; judge what they meant.\n\n";
+  } else {
+    prompt = "You are grading a mock coding interview after it has ended. The candidate answered out loud, so their words come from speech-to-text. Ignore filler words, restarts, and misspelled technical terms (for example \"hash map\" written as \"hashmat\"); judge what they meant.\n\n";
+  }
+  prompt = prompt + "Question: " + selectedQuestion.title + "\n" + selectedQuestion.prompt + "\n\n";
+  prompt = prompt + "The candidate asked for " + hintsGiven + " hint(s). Credit ideas they reached on their own more than ideas the interviewer handed them.\n\n";
+  prompt = prompt + "Interview record. Only records with an ID in square brackets (T1, T2... for things the candidate said, C1, C2... for code snapshots) count as evidence:\n";
+  prompt = prompt + buildEvidenceText() + "\n\n";
+  prompt = prompt + "Grade these five areas:\n";
+  for (var index = 0; index < rubric.length; index++) {
+    prompt = prompt + "- " + rubric[index].key + " (" + rubric[index].title + "): " + rubric[index].description + "\n";
+  }
+  prompt = prompt + "\nRules for each area:\n";
+  prompt = prompt + "- If the candidate gave evidence, set status to \"scored\", score from 1 to 5, evidenceId to the single best record ID, and excerpt to a short phrase (3 to 20 words) copied word for word from that record. No paraphrasing, no added words. A program checks that the excerpt really appears in that record.\n";
+  prompt = prompt + "- If the candidate gave no evidence for an area, set status to \"not_demonstrated\", score to 0, evidenceId and excerpt to empty strings. Silence, filler, or \"I don't know\" is not evidence.\n";
+  if (isBehavioral) {
+    prompt = prompt + "- Judge only the story the candidate told. Never assume details they didn't say.\n";
+  } else {
+    prompt = prompt + "- If the candidate wrote no code, code is not_demonstrated.\n";
+    prompt = prompt + "- You did not run any code. When you talk about code, describe what you see from reading it. Never claim it passed tests, produced output, or was executed.\n";
+  }
+  prompt = prompt + "- comment: one or two plain sentences written to the candidate as \"you\", explaining the score or what was missing.\n";
+  prompt = prompt + "- practice: one concrete thing to practice next for this area.\n\n";
+  prompt = prompt + "Reply with JSON only, no other text, in exactly this shape:\n";
+  prompt = prompt + "{\"dimensions\":{";
+  for (var shapeIndex = 0; shapeIndex < rubric.length; shapeIndex++) {
+    if (shapeIndex > 0) {
+      prompt = prompt + ",";
+    }
+    prompt = prompt + "\"" + rubric[shapeIndex].key + "\":{\"status\":\"scored\",\"score\":0,\"evidenceId\":\"\",\"excerpt\":\"\",\"comment\":\"\",\"practice\":\"\"}";
+  }
+  prompt = prompt + "},\"summary\":\"\",\"strengths\":[\"\"],\"improvements\":[\"\"]}\n";
+  prompt = prompt + "summary is two sentences to the candidate. Give up to three strengths and up to three improvements; leave strengths empty if there's nothing real to praise.";
+  return prompt;
+}
+
+function buildRetryPrompt(failures) {
+  var prompt = buildGradingPrompt();
+  prompt = prompt + "\n\nYour previous answer failed an automatic citation check:\n- " + failures.join("\n- ") + "\n";
+  prompt = prompt + "Return the full JSON again. For those areas, copy the excerpt exactly from the cited record, or use not_demonstrated if no record supports a score.";
+  return prompt;
+}
+
+// When the candidate never said or wrote anything, there's nothing to cite, so grade locally.
+function buildSilentGrade() {
+  var rubric = getActiveRubric();
+  var practiceText = "Practice thinking out loud from the first minute, even if it's just restating the problem.";
+  var improvementText = "Start by restating the problem and naming a brute-force approach, even before you have the best one.";
+  if (selectedQuestion.kind === "behavioral") {
+    practiceText = "Practice opening with one sentence about the situation, then build the story from there.";
+    improvementText = "Pick one real example before you start talking, then walk through the situation, what you did, and how it turned out.";
+  }
+  var dimensions = {};
+  for (var index = 0; index < rubric.length; index++) {
+    dimensions[rubric[index].key] = {
+      status: "not_demonstrated",
+      score: 0,
+      evidenceId: "",
+      excerpt: "",
+      comment: "You didn't say anything for this area, so there's nothing to grade.",
+      practice: practiceText
+    };
+  }
+  return {
+    dimensions: dimensions,
+    summary: "The interview ended before you answered, so every area is marked not demonstrated.",
+    strengths: [],
+    improvements: [improvementText]
+  };
+}
+
+function clampScore(value) {
+  var number = Number(value);
+  if (isNaN(number)) {
+    return 1;
+  }
+  if (number < 1) {
+    return 1;
+  }
+  if (number > maximumScorePerDimension) {
+    return maximumScorePerDimension;
+  }
+  return Math.round(number);
+}
+
+function candidateGaveAnyEvidence() {
+  for (var index = 0; index < transcript.length; index++) {
+    if (transcript[index].speaker === "candidate" || transcript[index].speaker === "code") {
+      return true;
+    }
+  }
+  return false;
+}
+
+function finishInterview() {
+  if (isWaiting) {
+    return;
+  }
+  stopListening();
+  var answerText = answerBox.value.trim();
+  if (answerText !== "") {
+    addCandidateTurn(answerText);
+    answerBox.value = "";
+  }
+  saveCodeSnapshotIfChanged();
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+  if (!candidateGaveAnyEvidence()) {
+    var silentGrade = buildSilentGrade();
+    composer.hidden = true;
+    renderReport(silentGrade, checkAllCitations(transcript, silentGrade, getActiveRubric()));
+    return;
+  }
+  clearError();
+  setWaiting(true);
+  var gradingNote = addMessageBubble("hint-note", "Grading your interview and checking every citation…", "");
+  callGrader(buildGradingPrompt()).then(function (firstGrade) {
+    var firstChecks = checkAllCitations(transcript, firstGrade, getActiveRubric());
+    var failures = listFailedChecks(firstChecks, getActiveRubric());
+    if (failures.length === 0) {
+      return { grade: firstGrade, checks: firstChecks };
+    }
+    // One retry: tell the grader exactly which citations failed.
+    gradingNote.textContent = "Some citations didn't match the transcript. Asking the grader to fix them…";
+    return callGrader(buildRetryPrompt(failures)).then(function (secondGrade) {
+      return { grade: secondGrade, checks: checkAllCitations(transcript, secondGrade, getActiveRubric()) };
+    });
+  }).then(function (outcome) {
+    gradingNote.parentElement.remove();
+    composer.hidden = true;
+    renderReport(outcome.grade, outcome.checks);
+    setWaiting(false);
+  }).catch(function (error) {
+    gradingNote.parentElement.remove();
+    showError(describeError(error));
+    setWaiting(false);
+  });
+}
+
+// ===== Report =====
+
+function buildEvidenceBlock(dimensionResult) {
+  var evidenceId = String(dimensionResult.evidenceId).trim();
+  var record = findEvidenceRecord(transcript, evidenceId);
+  var block = document.createElement("blockquote");
+  block.className = "evidence";
+  var sourceLink = document.createElement("a");
+  sourceLink.href = "#record-" + evidenceId;
+  if (record !== null && record.speaker === "code") {
+    sourceLink.textContent = "Your code · " + evidenceId + " · read, not run";
+  } else {
+    sourceLink.textContent = "You said · " + evidenceId;
+  }
+  sourceLink.addEventListener("click", function () {
+    document.getElementById("recordDrawer").open = true;
+  });
+  var excerptText = document.createElement("span");
+  excerptText.textContent = "“" + String(dimensionResult.excerpt).trim() + "”";
+  block.appendChild(sourceLink);
+  block.appendChild(excerptText);
+  return block;
+}
+
+function buildRubricItem(dimension, dimensionResult, check) {
+  var item = document.createElement("div");
+  var heading = document.createElement("h3");
+  var titleSpan = document.createElement("span");
+  titleSpan.textContent = dimension.title;
+  var scoreSpan = document.createElement("span");
+  heading.appendChild(titleSpan);
+  heading.appendChild(scoreSpan);
+  item.appendChild(heading);
+
+  var result = dimensionResult;
+  if (!result || typeof result !== "object") {
+    result = {};
+  }
+  var points = 0;
+  var counted = false;
+
+  if (!check.verified) {
+    item.className = "rubric-item unverified";
+    scoreSpan.textContent = "Not shown";
+    var statusNote = document.createElement("p");
+    statusNote.className = "status-note";
+    statusNote.textContent = "The grader's evidence didn't check out, so this score is hidden. " + check.reason;
+    item.appendChild(statusNote);
+  } else if (result.status === "not_demonstrated") {
+    item.className = "rubric-item not-demonstrated";
+    scoreSpan.textContent = "Not demonstrated";
+    counted = true;
+  } else {
+    item.className = "rubric-item";
+    points = clampScore(result.score);
+    counted = true;
+    scoreSpan.textContent = points + " / " + maximumScorePerDimension;
+    var dots = document.createElement("div");
+    dots.className = "score-dots";
+    for (var dotIndex = 1; dotIndex <= maximumScorePerDimension; dotIndex++) {
+      var dot = document.createElement("span");
+      if (dotIndex <= points) {
+        dot.className = "score-dot filled";
+      } else {
+        dot.className = "score-dot";
+      }
+      dots.appendChild(dot);
+    }
+    item.appendChild(dots);
+    item.appendChild(buildEvidenceBlock(result));
+  }
+
+  if (check.verified && result.comment) {
+    var comment = document.createElement("p");
+    comment.textContent = result.comment;
+    item.appendChild(comment);
+  }
+  if (check.verified && result.practice) {
+    var practice = document.createElement("p");
+    practice.className = "practice";
+    var practiceLabel = document.createElement("strong");
+    practiceLabel.textContent = "Practice next: ";
+    practice.appendChild(practiceLabel);
+    practice.appendChild(document.createTextNode(result.practice));
+    item.appendChild(practice);
+  }
+  return { element: item, points: points, counted: counted };
+}
+
+function buildList(title, entries) {
+  var wrapper = document.createElement("div");
+  var heading = document.createElement("h2");
+  heading.textContent = title;
+  var list = document.createElement("ul");
+  var addedAny = false;
+  if (Array.isArray(entries)) {
+    for (var index = 0; index < entries.length; index++) {
+      if (entries[index]) {
+        var listItem = document.createElement("li");
+        listItem.textContent = entries[index];
+        list.appendChild(listItem);
+        addedAny = true;
+      }
+    }
+  }
+  if (!addedAny) {
+    var emptyItem = document.createElement("li");
+    emptyItem.textContent = "Nothing to note yet.";
+    list.appendChild(emptyItem);
+  }
+  wrapper.appendChild(heading);
+  wrapper.appendChild(list);
+  return wrapper;
+}
+
+function buildRecordDrawer() {
+  var drawer = document.createElement("details");
+  drawer.className = "record-drawer";
+  drawer.id = "recordDrawer";
+  var summary = document.createElement("summary");
+  summary.textContent = "Interview record (what the grader could cite)";
+  drawer.appendChild(summary);
+  var list = document.createElement("div");
+  list.className = "record-list";
+  for (var index = 0; index < transcript.length; index++) {
+    var entry = transcript[index];
+    if (entry.speaker === "candidate" || entry.speaker === "code") {
+      var record = document.createElement("div");
+      record.id = "record-" + entry.id;
+      if (entry.speaker === "code") {
+        record.className = "record code-record";
+      } else {
+        record.className = "record";
+      }
+      var idLabel = document.createElement("span");
+      idLabel.className = "record-id";
+      idLabel.textContent = entry.id;
+      record.appendChild(idLabel);
+      if (entry.speaker === "code") {
+        record.appendChild(document.createTextNode("\n"));
+      }
+      record.appendChild(document.createTextNode(entry.text));
+      list.appendChild(record);
+    }
+  }
+  drawer.appendChild(list);
+  return drawer;
+}
+
+function renderReport(grade, checks) {
+  reportSection.innerHTML = "";
+  var safeGrade = grade;
+  if (!safeGrade || typeof safeGrade !== "object") {
+    safeGrade = {};
+  }
+  var dimensionResults = safeGrade.dimensions;
+  if (!dimensionResults || typeof dimensionResults !== "object") {
+    dimensionResults = {};
+  }
+
+  var activeRubric = getActiveRubric();
+  var rubric = document.createElement("div");
+  rubric.className = "rubric";
+  var totalPoints = 0;
+  var verifiedCount = 0;
+  for (var index = 0; index < activeRubric.length; index++) {
+    var dimension = activeRubric[index];
+    var built = buildRubricItem(dimension, dimensionResults[dimension.key], checks[dimension.key]);
+    rubric.appendChild(built.element);
+    totalPoints = totalPoints + built.points;
+    if (built.counted) {
+      verifiedCount = verifiedCount + 1;
+    }
+  }
+
+  var label = document.createElement("span");
+  label.className = "label";
+  label.textContent = "Your graded breakdown";
+
+  var total = document.createElement("div");
+  total.className = "total";
+  var totalNumber = document.createElement("span");
+  totalNumber.className = "total-score";
+  totalNumber.textContent = String(totalPoints);
+  var totalOutOf = document.createElement("span");
+  totalOutOf.className = "total-out-of";
+  var hintText = "no hints";
+  if (hintsGiven === 1) {
+    hintText = "1 hint used";
+  } else if (hintsGiven > 1) {
+    hintText = hintsGiven + " hints used";
+  }
+  var maximumTotal = activeRubric.length * maximumScorePerDimension;
+  var verifiedText = verifiedCount + " of " + activeRubric.length + " areas checked against the transcript";
+  totalOutOf.textContent = "out of " + maximumTotal + " · " + selectedQuestion.title + " · " + hintText + " · " + verifiedText;
+  total.appendChild(totalNumber);
+  total.appendChild(totalOutOf);
+
+  var summary = document.createElement("p");
+  summary.style.margin = "0";
+  summary.textContent = safeGrade.summary || "";
+
+  var feedbackColumns = document.createElement("div");
+  feedbackColumns.className = "feedback-columns";
+  feedbackColumns.appendChild(buildList("What went well", safeGrade.strengths));
+  feedbackColumns.appendChild(buildList("What to work on", safeGrade.improvements));
+
+  var buttonRow = document.createElement("div");
+  buttonRow.className = "button-row";
+  var againButton = document.createElement("button");
+  againButton.className = "primary";
+  againButton.textContent = "Try another question";
+  againButton.addEventListener("click", function () {
+    interviewSection.hidden = true;
+    reportSection.hidden = true;
+    setupSection.hidden = false;
+  });
+  buttonRow.appendChild(againButton);
+
+  reportSection.appendChild(label);
+  reportSection.appendChild(total);
+  reportSection.appendChild(summary);
+  reportSection.appendChild(rubric);
+  reportSection.appendChild(feedbackColumns);
+  reportSection.appendChild(buildRecordDrawer());
+  reportSection.appendChild(buttonRow);
+  reportSection.hidden = false;
+  reportSection.scrollIntoView({ block: "start" });
+}
+
+// ===== Start up =====
+
+startButton.addEventListener("click", startInterview);
+microphoneButton.addEventListener("click", toggleListening);
+sendButton.addEventListener("click", sendAnswer);
+hintButton.addEventListener("click", requestHint);
+finishButton.addEventListener("click", finishInterview);
+answerBox.addEventListener("keydown", function (event) {
+  if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+    event.preventDefault();
+    sendAnswer();
+  }
+});
+
+renderQuestionLists();
+setUpSpeechRecognition();
+</script>
+</body>
+</html>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mock Interviewer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=Sora:wght@300;400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --background: #E2DED6;
+  --surface: #F1EEE8;
+  --surface-strong: #FBF9F5;
+  --ink: #2A2A2A;
+  --ink-soft: #55524D;
+  --line: #C9C4BB;
+  --accent: #B5651D;
+  --highlight: #E8B54A;
+  --charcoal: #353535;
+  --on-charcoal: #E9E5DD;
+  --weak: #A8432F;
+  --font-display: 'IBM Plex Sans', Arial, sans-serif;
+  --font-body: 'Sora', Arial, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #2B2B2B; --surface: #353535; --surface-strong: #3E3E3E; --ink: #E9E5DD; --ink-soft: #BDB8AE;
+    --line: #55524D; --accent: #E8A25A; --highlight: #E8B54A; --charcoal: #1F1F1F; --on-charcoal: #E9E5DD; --weak: #E88A74;
+  }
+}
+* { box-sizing: border-box; }
 body { margin: 0; background: var(--background); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
 .page { max-width: 860px; margin: 0 auto; padding: 28px 16px 64px; display: flex; flex-direction: column; gap: 22px; }
 header { display: flex; flex-direction: column; gap: 6px; border-bottom: 3px solid var(--highlight); padding-bottom: 16px; }
