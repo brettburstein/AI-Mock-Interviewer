@@ -707,7 +707,7 @@ function askInterviewer() {
 // Asks the AI to write a new question for the chosen coding topic.
 function buildQuestionWriterPrompt(category) {
   var prompt = "Write one original coding interview question for the topic \"" + category.title + "\" (" + category.difficulty + "). ";
-  prompt = prompt + "It should be Easy or Medium difficulty, the kind asked in a software engineering internship or new grad interview, and solvable in about 30 minutes.\n";
+  prompt = prompt + "It should be Easy or Medium difficulty, the kind asked in a software engineering internship or new grad interview, and solvable in about 30 minutes. Never name the algorithm or data structure to use, and do not hint at the solution: figuring that out is part of the interview.\n";
   if (generatedQuestionTitles.length > 0) {
     prompt = prompt + "Do not repeat any of these questions: " + generatedQuestionTitles.join(", ") + ".\n";
   }
