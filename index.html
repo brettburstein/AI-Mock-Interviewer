@@ -2,12 +2,10 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mock Interviewer</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=Sora:wght@300;400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one working column. Question card on top, conversation below, answer and code boxes pinned under it. The grade report replaces the conversation at the end. */
 :root {
   --background: #E2DED6;
   --surface: #F1EEE8;
@@ -19,31 +17,22 @@
   --highlight: #E8B54A;
   --charcoal: #353535;
   --on-charcoal: #E9E5DD;
-  --good: #3F7D4E;
   --weak: #A8432F;
   --font-display: 'IBM Plex Sans', Arial, sans-serif;
   --font-body: 'Sora', Arial, sans-serif;
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
-  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root {
     --background: #2B2B2B; --surface: #353535; --surface-strong: #3E3E3E; --ink: #E9E5DD; --ink-soft: #BDB8AE;
-    --line: #55524D; --accent: #E8A25A; --highlight: #E8B54A; --charcoal: #1F1F1F; --on-charcoal: #E9E5DD;
-    --good: #7DC08E; --weak: #E88A74; color-scheme: dark;
+    --line: #55524D; --accent: #E8A25A; --highlight: #E8B54A; --charcoal: #1F1F1F; --on-charcoal: #E9E5DD; --weak: #E88A74;
   }
 }
-:root[data-theme="dark"] {
-  --background: #2B2B2B; --surface: #353535; --surface-strong: #3E3E3E; --ink: #E9E5DD; --ink-soft: #BDB8AE;
-  --line: #55524D; --accent: #E8A25A; --highlight: #E8B54A; --charcoal: #1F1F1F; --on-charcoal: #E9E5DD;
-  --good: #7DC08E; --weak: #E88A74; color-scheme: dark;
-}
 * { box-sizing: border-box; }
-html { scroll-padding-top: env(safe-area-inset-top, 0px); }
 body { margin: 0; background: var(--background); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
-.page { max-width: 860px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 22px; }
+.page { max-width: 860px; margin: 0 auto; padding: 28px 16px 64px; display: flex; flex-direction: column; gap: 22px; }
 header { display: flex; flex-direction: column; gap: 6px; border-bottom: 3px solid var(--highlight); padding-bottom: 16px; }
-h1 { font-family: var(--font-display); font-weight: 300; font-size: clamp(30px, 6vw, 44px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h1 { font-family: var(--font-display); font-weight: 300; font-size: clamp(30px, 6vw, 44px); line-height: 1.1; margin: 0; }
 .tagline { color: var(--ink-soft); margin: 0; }
 h2 { font-family: var(--font-display); font-weight: 500; font-size: 20px; margin: 0; }
 .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); font-weight: 600; }
@@ -53,30 +42,30 @@ h2 { font-family: var(--font-display); font-weight: 500; font-size: 20px; margin
 .question-option[aria-pressed="true"] { border: 2px solid var(--accent); background: var(--surface-strong); }
 .question-option strong { font-family: var(--font-display); font-weight: 500; font-size: 16px; }
 .difficulty { font-size: 12px; color: var(--ink-soft); }
+.key-row { display: flex; flex-direction: column; gap: 6px; }
+input[type="password"] { font: inherit; color: var(--ink); background: var(--surface-strong); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
 .question-card { background: var(--charcoal); color: var(--on-charcoal); border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; gap: 8px; }
 .question-card .label { color: var(--highlight); }
 .question-card p { margin: 0; }
 .example { font-family: var(--font-mono); font-size: 13.5px; white-space: pre-wrap; opacity: 0.85; }
 .conversation { display: flex; flex-direction: column; gap: 12px; min-height: 120px; }
-.message { max-width: 85%; padding: 12px 15px; border-radius: 12px; white-space: pre-wrap; min-width: 0; overflow-wrap: anywhere; }
+.message { max-width: 85%; padding: 12px 15px; border-radius: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .message.interviewer { background: var(--surface); border: 1px solid var(--line); align-self: flex-start; }
 .message.candidate { background: var(--surface-strong); border: 1px solid var(--accent); align-self: flex-end; }
 .message.code { background: var(--charcoal); color: var(--on-charcoal); align-self: flex-end; font-family: var(--font-mono); font-size: 13px; max-width: 100%; }
 .message.hint-note { align-self: center; background: none; font-size: 13px; color: var(--ink-soft); padding: 2px; }
-.speaker { display: block; font-family: var(--font-body); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); margin-bottom: 4px; }
+.speaker { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); margin-bottom: 4px; }
 .message.code .speaker { color: var(--highlight); }
-.composer { display: flex; flex-direction: column; gap: 10px; position: sticky; bottom: env(safe-area-inset-bottom, 0px); background: var(--background); padding-top: 8px; }
+.composer { display: flex; flex-direction: column; gap: 10px; position: sticky; bottom: 0; background: var(--background); padding-top: 8px; }
 textarea { width: 100%; min-height: 96px; resize: vertical; font: inherit; color: var(--ink); background: var(--surface-strong); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
 textarea.code-box { font-family: var(--font-mono); font-size: 13.5px; min-height: 80px; }
-textarea:focus { outline: 2px solid var(--highlight); outline-offset: 1px; }
 details.code-drawer summary { cursor: pointer; font-size: 13px; color: var(--ink-soft); }
-details.code-drawer[open] summary { margin-bottom: 8px; }
 .button-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 button.primary, button.secondary { font: inherit; font-weight: 600; border-radius: 999px; padding: 10px 18px; cursor: pointer; border: 1px solid transparent; }
 button.primary { background: var(--highlight); color: #2A2A2A; }
 button.secondary { background: none; color: var(--ink); border-color: var(--line); }
+button.listening { background: var(--weak); color: #FBF9F5; border-color: var(--weak); }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
-button:focus-visible, .question-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .spacer { flex: 1; }
 .toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-soft); }
 .tip { font-size: 13px; color: var(--ink-soft); margin: 0; }
@@ -84,35 +73,30 @@ button:focus-visible, .question-option:focus-visible { outline: 2px solid var(--
 .notice.error { border-color: var(--weak); color: var(--weak); }
 .report { display: flex; flex-direction: column; gap: 18px; }
 .total { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.total-score { font-family: var(--font-display); font-size: 64px; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+.total-score { font-family: var(--font-display); font-size: 64px; font-weight: 300; line-height: 1; }
 .total-out-of { color: var(--ink-soft); }
 .rubric { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-.rubric-item { background: var(--surface); border-radius: 10px; padding: 16px; border-top: 4px solid var(--highlight); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.rubric-item { background: var(--surface); border-radius: 10px; padding: 16px; border-top: 4px solid var(--highlight); display: flex; flex-direction: column; gap: 8px; }
 .rubric-item.not-demonstrated { border-top-color: var(--line); }
 .rubric-item.unverified { border-top-color: var(--weak); }
 .rubric-item h3 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 16px; display: flex; justify-content: space-between; gap: 8px; }
-.rubric-item .score { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .score-dots { display: flex; gap: 4px; }
 .score-dot { width: 18px; height: 6px; border-radius: 3px; background: var(--line); }
 .score-dot.filled { background: var(--accent); }
 .rubric-item p { margin: 0; color: var(--ink-soft); font-size: 14px; }
 .evidence { margin: 0; padding: 8px 10px; border-left: 3px solid var(--accent); background: var(--surface-strong); border-radius: 0 6px 6px 0; font-size: 13.5px; overflow-wrap: anywhere; }
 .evidence a { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); text-decoration: none; margin-bottom: 2px; }
-.evidence a:hover { text-decoration: underline; }
-.practice { font-size: 13.5px; }
 .practice strong { color: var(--ink); }
 .status-note { font-size: 13px; color: var(--weak); }
 .feedback-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
 .feedback-columns ul { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
 .record-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-.record { font-size: 13.5px; padding: 8px 10px; border-radius: 8px; background: var(--surface); white-space: pre-wrap; overflow-wrap: anywhere; scroll-margin-top: 16px; }
+.record { font-size: 13.5px; padding: 8px 10px; border-radius: 8px; background: var(--surface); white-space: pre-wrap; overflow-wrap: anywhere; }
 .record.code-record { font-family: var(--font-mono); font-size: 13px; }
 .record:target { outline: 2px solid var(--highlight); }
-.record-id { font-weight: 600; color: var(--accent); margin-right: 6px; font-family: var(--font-body); }
+.record-id { font-weight: 600; color: var(--accent); margin-right: 6px; }
 details.record-drawer summary { cursor: pointer; font-family: var(--font-display); font-weight: 500; font-size: 16px; }
 .thinking { color: var(--ink-soft); font-style: italic; }
-@media (prefers-reduced-motion: no-preference) { .message { animation: rise 0.18s ease-out; } }
-@keyframes rise { from { transform: translateY(4px); opacity: 0.6; } to { transform: none; opacity: 1; } }
 </style>
 </head>
 <body>
@@ -124,14 +108,17 @@ details.record-drawer summary { cursor: pointer; font-family: var(--font-display
   </header>
 
   <section id="setupSection" style="display:flex;flex-direction:column;gap:14px">
+    <div class="key-row" id="keyRow">
+      <label for="apiKeyInput" class="tip">Anthropic API key (stays in this tab only, never saved)</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off">
+    </div>
     <h2>Choose a question</h2>
     <div class="question-list" id="questionList"></div>
     <div class="button-row">
       <button class="primary" id="startButton">Start interview</button>
       <label class="toggle"><input type="checkbox" id="speakToggle" checked> Read interviewer replies aloud</label>
     </div>
-    <p class="tip">To answer out loud, use your device's dictation in the answer box (on a Mac, press the Fn key twice; on a phone, tap the keyboard mic).</p>
-    <div class="notice" id="availabilityNotice" hidden></div>
+    <p class="tip" id="voiceTip"></p>
   </section>
 
   <section id="interviewSection" style="display:flex;flex-direction:column;gap:18px" hidden>
@@ -149,19 +136,27 @@ details.record-drawer summary { cursor: pointer; font-family: var(--font-display
         <textarea id="codeBox" class="code-box" spellcheck="false" placeholder="Write or paste your code here. It's saved as a snapshot each time you send."></textarea>
       </details>
       <div class="button-row">
+        <button class="secondary" id="microphoneButton" hidden>Start talking</button>
         <button class="primary" id="sendButton">Send</button>
         <button class="secondary" id="hintButton">Ask for a hint</button>
         <span class="spacer"></span>
         <button class="secondary" id="finishButton">Finish and get graded</button>
       </div>
-      <div class="notice error" id="errorNotice" hidden></div>
     </div>
   </section>
 
+  <div class="notice error" id="errorNotice" hidden></div>
   <section id="reportSection" class="report" hidden></section>
 </div>
 
 <script>
+// ===== Settings =====
+// After you deploy proxy-worker.js, paste its URL here. Then nobody needs their own API key.
+// Leave it empty and each person pastes their own Anthropic API key instead.
+var proxyUrl = "";
+var interviewModel = "claude-sonnet-5-5";
+var gradingModel = "claude-sonnet-5-5";
+
 var questionBank = [
   {
     id: "group-anagrams",
@@ -202,49 +197,31 @@ var questionBank = [
 
 // The five areas every interview is graded on.
 var rubricDimensions = [
-  {
-    key: "understanding",
-    title: "Understanding the problem",
-    description: "Did they restate the problem, ask clarifying questions, and notice constraints and edge cases (empty input, duplicates, negatives)?"
-  },
-  {
-    key: "approach",
-    title: "Explaining the approach",
-    description: "Did they explain their thinking clearly and in order, the way an interviewer wants to hear it, and compare at least one alternative?"
-  },
-  {
-    key: "correctness",
-    title: "Correctness",
-    description: "Would the solution they described or wrote actually work, including edge cases?"
-  },
-  {
-    key: "complexity",
-    title: "Time and space complexity",
-    description: "Did they state the time and space complexity and justify it from how the solution works?"
-  },
-  {
-    key: "code",
-    title: "Code",
-    description: "If they wrote code: is it readable, and does it match the approach they described? Judge only from reading it."
-  }
+  { key: "understanding", title: "Understanding the problem", description: "Did they restate the problem, ask clarifying questions, and notice constraints and edge cases (empty input, duplicates, negatives)?" },
+  { key: "approach", title: "Explaining the approach", description: "Did they explain their thinking clearly and in order, the way an interviewer wants to hear it, and compare at least one alternative?" },
+  { key: "correctness", title: "Correctness", description: "Would the solution they described or wrote actually work, including edge cases?" },
+  { key: "complexity", title: "Time and space complexity", description: "Did they state the time and space complexity and justify it from how the solution works?" },
+  { key: "code", title: "Code", description: "If they wrote code: is it readable, and does it match the approach they described? Judge only from reading it." }
 ];
 
 var maximumScorePerDimension = 5;
 
 var selectedQuestion = questionBank[0];
-// Every entry: { speaker: "interviewer" | "candidate" | "code" | "hint-request", id: "T1" / "C1" / "", text: "..." }
 var transcript = [];
 var candidateTurnCount = 0;
 var codeSnapshotCount = 0;
 var lastSavedCode = "";
 var hintsGiven = 0;
-var askClaude = null;
 var isWaiting = false;
+var speechRecognizer = null;
+var isListening = false;
 
 var questionList = document.getElementById("questionList");
 var startButton = document.getElementById("startButton");
 var speakToggle = document.getElementById("speakToggle");
-var availabilityNotice = document.getElementById("availabilityNotice");
+var keyRow = document.getElementById("keyRow");
+var apiKeyInput = document.getElementById("apiKeyInput");
+var voiceTip = document.getElementById("voiceTip");
 var setupSection = document.getElementById("setupSection");
 var interviewSection = document.getElementById("interviewSection");
 var reportSection = document.getElementById("reportSection");
@@ -252,15 +229,77 @@ var conversation = document.getElementById("conversation");
 var answerBox = document.getElementById("answerBox");
 var codeBox = document.getElementById("codeBox");
 var codeDrawer = document.getElementById("codeDrawer");
+var microphoneButton = document.getElementById("microphoneButton");
 var sendButton = document.getElementById("sendButton");
 var hintButton = document.getElementById("hintButton");
 var finishButton = document.getElementById("finishButton");
 var errorNotice = document.getElementById("errorNotice");
 var composer = document.getElementById("composer");
 
-// CITATION CHECK START
-// Checks that each score the grader gives points at a real candidate turn or code snapshot,
-// and that the quoted excerpt actually appears in that record. Tested in tests/citationCheck.test.js.
+// ===== Talking to the AI =====
+
+function callModel(modelName, conversationTurns, maximumTokens) {
+  var requestBody = { model: modelName, max_tokens: maximumTokens, messages: conversationTurns };
+  var requestUrl = "https://api.anthropic.com/v1/messages";
+  var requestHeaders = { "content-type": "application/json" };
+  if (proxyUrl !== "") {
+    requestUrl = proxyUrl;
+  } else {
+    requestHeaders["x-api-key"] = apiKeyInput.value.trim();
+    requestHeaders["anthropic-version"] = "2023-06-01";
+    requestHeaders["anthropic-dangerous-direct-browser-access"] = "true";
+  }
+  return fetch(requestUrl, {
+    method: "POST",
+    headers: requestHeaders,
+    body: JSON.stringify(requestBody)
+  }).then(function (response) {
+    return response.json().then(function (responseData) {
+      if (!response.ok) {
+        var errorMessage = "The AI request failed (status " + response.status + ").";
+        if (responseData && responseData.error && responseData.error.message) {
+          errorMessage = responseData.error.message;
+        }
+        throw new Error(errorMessage);
+      }
+      var replyText = "";
+      var contentBlocks = responseData.content;
+      if (Array.isArray(contentBlocks)) {
+        for (var index = 0; index < contentBlocks.length; index++) {
+          if (contentBlocks[index].type === "text") {
+            replyText = replyText + contentBlocks[index].text;
+          }
+        }
+      }
+      return replyText;
+    });
+  });
+}
+
+// Pulls the JSON object out of the grader's reply, even if it added extra words around it.
+function parseJsonReply(replyText) {
+  var startIndex = replyText.indexOf("{");
+  var endIndex = replyText.lastIndexOf("}");
+  if (startIndex === -1 || endIndex === -1) {
+    throw new Error("The grader didn't return a readable report. Try finishing again.");
+  }
+  return JSON.parse(replyText.substring(startIndex, endIndex + 1));
+}
+
+function callGrader(promptText) {
+  return callModel(gradingModel, [{ role: "user", content: promptText }], 3000).then(parseJsonReply);
+}
+
+function hasAccess() {
+  if (proxyUrl !== "") {
+    return true;
+  }
+  return apiKeyInput.value.trim() !== "";
+}
+
+// ===== Citation check =====
+// Checks that each score points at a real candidate turn or code snapshot,
+// and that the quoted excerpt actually appears in that record.
 
 function normalizeForMatching(text) {
   var normalized = String(text).toLowerCase();
@@ -336,7 +375,81 @@ function listFailedChecks(checks, dimensions) {
   }
   return failures;
 }
-// CITATION CHECK END
+
+// ===== Voice input =====
+
+function setUpSpeechRecognition() {
+  var RecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!RecognitionClass) {
+    voiceTip.textContent = "This browser can't listen to your mic directly, so use your device's dictation in the answer box (on a Mac, press Fn twice). Chrome and Edge support the built-in mic button.";
+    return;
+  }
+  voiceTip.textContent = "Use the \"Start talking\" button during the interview to answer out loud. Your words show up in the answer box so you can fix them before sending.";
+  speechRecognizer = new RecognitionClass();
+  speechRecognizer.continuous = true;
+  speechRecognizer.interimResults = false;
+  speechRecognizer.lang = "en-US";
+  speechRecognizer.onresult = function (event) {
+    for (var index = event.resultIndex; index < event.results.length; index++) {
+      if (event.results[index].isFinal) {
+        var spokenText = event.results[index][0].transcript.trim();
+        if (answerBox.value.trim() === "") {
+          answerBox.value = spokenText;
+        } else {
+          answerBox.value = answerBox.value.trim() + " " + spokenText;
+        }
+      }
+    }
+  };
+  speechRecognizer.onend = function () {
+    setListening(false);
+  };
+  speechRecognizer.onerror = function (event) {
+    setListening(false);
+    if (event.error === "not-allowed") {
+      showError("Mic access was blocked. Allow the microphone for this page, or type your answer instead.");
+    }
+  };
+  microphoneButton.hidden = false;
+}
+
+function setListening(listening) {
+  isListening = listening;
+  if (listening) {
+    microphoneButton.textContent = "Stop talking";
+    microphoneButton.className = "secondary listening";
+  } else {
+    microphoneButton.textContent = "Start talking";
+    microphoneButton.className = "secondary";
+  }
+}
+
+function toggleListening() {
+  if (speechRecognizer === null) {
+    return;
+  }
+  if (isListening) {
+    speechRecognizer.stop();
+    return;
+  }
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+  try {
+    speechRecognizer.start();
+    setListening(true);
+  } catch (startError) {
+    setListening(false);
+  }
+}
+
+function stopListening() {
+  if (speechRecognizer !== null && isListening) {
+    speechRecognizer.stop();
+  }
+}
+
+// ===== Interview =====
 
 function renderQuestionList() {
   questionList.innerHTML = "";
@@ -371,11 +484,6 @@ function selectQuestion(event) {
     }
   }
   renderQuestionList();
-}
-
-function showAvailabilityNotice(message) {
-  availabilityNotice.textContent = message;
-  availabilityNotice.hidden = false;
 }
 
 function showError(message) {
@@ -510,40 +618,23 @@ function buildConversationTurns() {
 }
 
 function describeError(error) {
-  if (error && error.code === "not_granted") {
-    return "The interviewer needs permission to use Claude. Allow it when asked, then try again.";
-  }
-  if (error && error.code === "rate_limited") {
-    return "Too many requests right now. Wait a minute and try again.";
-  }
   if (error && error.message) {
-    return "Something went wrong reaching the interviewer: " + error.message;
+    return "Something went wrong reaching the AI: " + error.message;
   }
-  return "Something went wrong reaching the interviewer. Try again.";
+  return "Something went wrong reaching the AI. Check your connection and try again.";
 }
 
 function askInterviewer() {
-  if (askClaude === null) {
-    showError("The AI interviewer only works when this page is opened in Claude.");
-    return;
-  }
   clearError();
   setWaiting(true);
   var replyTextElement = addMessageBubble("interviewer", "Thinking…", "");
   replyTextElement.className = "thinking";
-  askClaude(buildConversationTurns(), {
-    modelTier: "default",
-    cache: false,
-    onText: function (progress) {
-      replyTextElement.className = "";
-      replyTextElement.textContent = progress.text;
-    }
-  }).then(function (result) {
-    var replyText = result.text.trim();
+  callModel(interviewModel, buildConversationTurns(), 400).then(function (replyText) {
+    var trimmedReply = replyText.trim();
     replyTextElement.className = "";
-    replyTextElement.textContent = replyText;
-    transcript.push({ speaker: "interviewer", id: "", text: replyText });
-    speakAloud(replyText);
+    replyTextElement.textContent = trimmedReply;
+    transcript.push({ speaker: "interviewer", id: "", text: trimmedReply });
+    speakAloud(trimmedReply);
     setWaiting(false);
     answerBox.focus();
   }).catch(function (error) {
@@ -554,6 +645,12 @@ function askInterviewer() {
 }
 
 function startInterview() {
+  if (!hasAccess()) {
+    showError("Paste your Anthropic API key above to start.");
+    apiKeyInput.focus();
+    return;
+  }
+  clearError();
   transcript = [];
   candidateTurnCount = 0;
   codeSnapshotCount = 0;
@@ -577,15 +674,15 @@ function sendAnswer() {
   if (isWaiting) {
     return;
   }
+  stopListening();
   var answerText = answerBox.value.trim();
-  var savedCode = false;
   if (answerText !== "") {
     addCandidateTurn(answerText);
     answerBox.value = "";
   }
-  savedCode = saveCodeSnapshotIfChanged();
+  var savedCode = saveCodeSnapshotIfChanged();
   if (answerText === "" && !savedCode) {
-    showError("Type, dictate, or write some code first.");
+    showError("Say, type, or write some code first.");
     return;
   }
   askInterviewer();
@@ -595,6 +692,7 @@ function requestHint() {
   if (isWaiting) {
     return;
   }
+  stopListening();
   var answerText = answerBox.value.trim();
   if (answerText !== "") {
     addCandidateTurn(answerText);
@@ -606,6 +704,8 @@ function requestHint() {
   addMessageBubble("hint-note", "You asked for hint " + hintsGiven, "");
   askInterviewer();
 }
+
+// ===== Grading =====
 
 // Interviewer lines are context only. Only lines with an ID can be cited as evidence.
 function buildEvidenceText() {
@@ -637,12 +737,12 @@ function buildGradingPrompt() {
   }
   prompt = prompt + "\nRules for each area:\n";
   prompt = prompt + "- If the candidate gave evidence, set status to \"scored\", score from 1 to 5, evidenceId to the single best record ID, and excerpt to a short phrase (3 to 20 words) copied word for word from that record. No paraphrasing, no added words. A program checks that the excerpt really appears in that record.\n";
-  prompt = prompt + "- If the candidate gave no evidence for an area, set status to \"not_demonstrated\", score to 0, evidenceId and excerpt to empty strings. Silence, filler, or \"I don't know\" is not evidence. For example, a candidate who never talked about complexity gets not_demonstrated for complexity, while one who explained that a hash map lookup is O(1) on average gets a real score with that quote.\n";
+  prompt = prompt + "- If the candidate gave no evidence for an area, set status to \"not_demonstrated\", score to 0, evidenceId and excerpt to empty strings. Silence, filler, or \"I don't know\" is not evidence.\n";
   prompt = prompt + "- If the candidate wrote no code, code is not_demonstrated.\n";
-  prompt = prompt + "- You did not run any code. When you talk about code, describe what you see from reading it (for example \"reading your code, a duplicate value would overwrite its earlier index\"). Never claim it passed tests, produced output, or was executed.\n";
+  prompt = prompt + "- You did not run any code. When you talk about code, describe what you see from reading it. Never claim it passed tests, produced output, or was executed.\n";
   prompt = prompt + "- comment: one or two plain sentences written to the candidate as \"you\", explaining the score or what was missing.\n";
   prompt = prompt + "- practice: one concrete thing to practice next for this area.\n\n";
-  prompt = prompt + "Reply with JSON only, in exactly this shape:\n";
+  prompt = prompt + "Reply with JSON only, no other text, in exactly this shape:\n";
   prompt = prompt + "{\"dimensions\":{";
   for (var shapeIndex = 0; shapeIndex < rubricDimensions.length; shapeIndex++) {
     if (shapeIndex > 0) {
@@ -710,6 +810,7 @@ function finishInterview() {
   if (isWaiting) {
     return;
   }
+  stopListening();
   var answerText = answerBox.value.trim();
   if (answerText !== "") {
     addCandidateTurn(answerText);
@@ -725,14 +826,10 @@ function finishInterview() {
     renderReport(silentGrade, checkAllCitations(transcript, silentGrade, rubricDimensions));
     return;
   }
-  if (askClaude === null) {
-    showError("Grading only works when this page is opened in Claude.");
-    return;
-  }
   clearError();
   setWaiting(true);
   var gradingNote = addMessageBubble("hint-note", "Grading your interview and checking every citation…", "");
-  askClaude.json(buildGradingPrompt(), { modelTier: "complex" }).then(function (firstGrade) {
+  callGrader(buildGradingPrompt()).then(function (firstGrade) {
     var firstChecks = checkAllCitations(transcript, firstGrade, rubricDimensions);
     var failures = listFailedChecks(firstChecks, rubricDimensions);
     if (failures.length === 0) {
@@ -740,7 +837,7 @@ function finishInterview() {
     }
     // One retry: tell the grader exactly which citations failed.
     gradingNote.textContent = "Some citations didn't match the transcript. Asking the grader to fix them…";
-    return askClaude.json(buildRetryPrompt(failures), { modelTier: "complex" }).then(function (secondGrade) {
+    return callGrader(buildRetryPrompt(failures)).then(function (secondGrade) {
       return { grade: secondGrade, checks: checkAllCitations(transcript, secondGrade, rubricDimensions) };
     });
   }).then(function (outcome) {
@@ -754,6 +851,8 @@ function finishInterview() {
     setWaiting(false);
   });
 }
+
+// ===== Report =====
 
 function buildEvidenceBlock(dimensionResult) {
   var evidenceId = String(dimensionResult.evidenceId).trim();
@@ -783,7 +882,6 @@ function buildRubricItem(dimension, dimensionResult, check) {
   var titleSpan = document.createElement("span");
   titleSpan.textContent = dimension.title;
   var scoreSpan = document.createElement("span");
-  scoreSpan.className = "score";
   heading.appendChild(titleSpan);
   heading.appendChild(scoreSpan);
   item.appendChild(heading);
@@ -813,7 +911,6 @@ function buildRubricItem(dimension, dimensionResult, check) {
     scoreSpan.textContent = points + " / " + maximumScorePerDimension;
     var dots = document.createElement("div");
     dots.className = "score-dots";
-    dots.setAttribute("aria-hidden", "true");
     for (var dotIndex = 1; dotIndex <= maximumScorePerDimension; dotIndex++) {
       var dot = document.createElement("span");
       if (dotIndex <= points) {
@@ -879,7 +976,6 @@ function buildRecordDrawer() {
   drawer.appendChild(summary);
   var list = document.createElement("div");
   list.className = "record-list";
-  var addedAny = false;
   for (var index = 0; index < transcript.length; index++) {
     var entry = transcript[index];
     if (entry.speaker === "candidate" || entry.speaker === "code") {
@@ -899,70 +995,10 @@ function buildRecordDrawer() {
       }
       record.appendChild(document.createTextNode(entry.text));
       list.appendChild(record);
-      addedAny = true;
     }
-  }
-  if (!addedAny) {
-    var emptyNote = document.createElement("p");
-    emptyNote.className = "tip";
-    emptyNote.textContent = "You didn't say or write anything during this interview.";
-    list.appendChild(emptyNote);
   }
   drawer.appendChild(list);
   return drawer;
-}
-
-// Builds the JSON that jac/grader.jac reads, so the same interview can be graded by the Jac grader.
-function buildTranscriptForJacGrader() {
-  var candidateRecords = [];
-  var interviewerLines = [];
-  for (var index = 0; index < transcript.length; index++) {
-    var entry = transcript[index];
-    if (entry.speaker === "candidate") {
-      candidateRecords.push({ record_id: entry.id, kind: "said", text: entry.text });
-    } else if (entry.speaker === "code") {
-      candidateRecords.push({ record_id: entry.id, kind: "code", text: entry.text });
-    } else if (entry.speaker === "interviewer") {
-      interviewerLines.push(entry.text);
-    }
-  }
-  var transcriptData = {
-    question: selectedQuestion.title + ": " + selectedQuestion.prompt,
-    hints_used: hintsGiven,
-    interviewer_lines: interviewerLines,
-    candidate_records: candidateRecords
-  };
-  return JSON.stringify(transcriptData, null, 2);
-}
-
-function buildCopyTranscriptButton() {
-  var copyButton = document.createElement("button");
-  copyButton.className = "secondary";
-  copyButton.textContent = "Copy transcript for Jac grader";
-  copyButton.addEventListener("click", function () {
-    var transcriptJson = buildTranscriptForJacGrader();
-    var showFallback = function () {
-      var fallbackBox = document.getElementById("transcriptFallback");
-      if (fallbackBox === null) {
-        fallbackBox = document.createElement("textarea");
-        fallbackBox.id = "transcriptFallback";
-        fallbackBox.className = "code-box";
-        fallbackBox.readOnly = true;
-        reportSection.appendChild(fallbackBox);
-      }
-      fallbackBox.value = transcriptJson;
-      fallbackBox.select();
-      copyButton.textContent = "Copy the text below";
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(transcriptJson).then(function () {
-        copyButton.textContent = "Copied";
-      }).catch(showFallback);
-    } else {
-      showFallback();
-    }
-  });
-  return copyButton;
 }
 
 function renderReport(grade, checks) {
@@ -1033,7 +1069,6 @@ function renderReport(grade, checks) {
     setupSection.hidden = false;
   });
   buttonRow.appendChild(againButton);
-  buttonRow.appendChild(buildCopyTranscriptButton());
 
   reportSection.appendChild(label);
   reportSection.appendChild(total);
@@ -1046,7 +1081,10 @@ function renderReport(grade, checks) {
   reportSection.scrollIntoView({ block: "start" });
 }
 
+// ===== Start up =====
+
 startButton.addEventListener("click", startInterview);
+microphoneButton.addEventListener("click", toggleListening);
 sendButton.addEventListener("click", sendAnswer);
 hintButton.addEventListener("click", requestHint);
 finishButton.addEventListener("click", finishInterview);
@@ -1057,19 +1095,11 @@ answerBox.addEventListener("keydown", function (event) {
   }
 });
 
-renderQuestionList();
-
-if (window.claude && window.claude.use) {
-  window.claude.use("sample").then(function (sampleFunction) {
-    if (sampleFunction) {
-      askClaude = sampleFunction;
-    } else {
-      showAvailabilityNotice("The AI interviewer isn't available in this view. Open the page in Claude while signed in.");
-    }
-  });
-} else {
-  showAvailabilityNotice("The AI interviewer only runs when this page is opened in Claude.");
+if (proxyUrl !== "") {
+  keyRow.hidden = true;
 }
+renderQuestionList();
+setUpSpeechRecognition();
 </script>
 </body>
 </html>
