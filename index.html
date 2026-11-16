@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mock Interviewer</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=Sora:wght@300;400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/go/go.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <style>
 :root {
   --background: #E2DED6;
@@ -55,10 +64,13 @@ h2 { font-family: var(--font-display); font-weight: 500; font-size: 20px; margin
 .message.hint-note { align-self: center; background: none; font-size: 13px; color: var(--ink-soft); padding: 2px; }
 .speaker { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); margin-bottom: 4px; }
 .message.code .speaker { color: var(--highlight); }
-.composer { display: flex; flex-direction: column; gap: 10px; position: sticky; bottom: 0; background: var(--background); padding-top: 8px; }
+.composer { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
 textarea { width: 100%; min-height: 96px; resize: vertical; font: inherit; color: var(--ink); background: var(--surface-strong); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
-textarea.code-box { font-family: var(--font-mono); font-size: 13.5px; min-height: 80px; }
-details.code-drawer summary { cursor: pointer; font-size: 13px; color: var(--ink-soft); }
+textarea.code-box { font-family: var(--font-mono); font-size: 13.5px; min-height: 260px; background: #212121; color: #EEFFFF; }
+.code-section { display: flex; flex-direction: column; gap: 6px; }
+.code-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.code-header select { font: inherit; font-size: 13px; color: var(--ink); background: var(--surface-strong); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+.code-section .CodeMirror { height: 280px; border-radius: 10px; font-family: var(--font-mono); font-size: 13.5px; line-height: 1.5; padding: 6px 0; }
 .button-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 button.primary, button.secondary { font: inherit; font-weight: 600; border-radius: 999px; padding: 10px 18px; cursor: pointer; border: 1px solid transparent; }
 button.primary { background: var(--highlight); color: #2A2A2A; }
@@ -129,10 +141,19 @@ details.record-drawer summary { cursor: pointer; font-family: var(--font-display
     <div class="composer" id="composer">
       <label for="answerBox" class="tip">Your answer</label>
       <textarea id="answerBox" placeholder="Talk through your approach the way you would out loud…"></textarea>
-      <details class="code-drawer" id="codeDrawer">
-        <summary>Write code (optional)</summary>
-        <textarea id="codeBox" class="code-box" spellcheck="false" placeholder="Write or paste your code here. It's saved as a snapshot each time you send."></textarea>
-      </details>
+      <div class="code-section" id="codeSection">
+        <div class="code-header">
+          <label for="languageSelect" class="tip">Your code (optional, saved each time you send)</label>
+          <select id="languageSelect">
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="cpp">C++</option>
+            <option value="javascript">JavaScript</option>
+            <option value="go">Go</option>
+          </select>
+        </div>
+        <textarea id="codeBox" class="code-box" spellcheck="false"></textarea>
+      </div>
       <div class="button-row">
         <button class="secondary" id="microphoneButton" hidden>Start talking</button>
         <button class="primary" id="sendButton">Send</button>
@@ -274,7 +295,79 @@ var reportSection = document.getElementById("reportSection");
 var conversation = document.getElementById("conversation");
 var answerBox = document.getElementById("answerBox");
 var codeBox = document.getElementById("codeBox");
-var codeDrawer = document.getElementById("codeDrawer");
+var codeSection = document.getElementById("codeSection");
+var languageSelect = document.getElementById("languageSelect");
+var codeEditor = null;
+
+// ===== Code editor =====
+
+// Each language: the name people see, the highlighting mode, and starter text for the editor.
+var languageSettings = {
+  python: { name: "Python", mode: "python", starter: "# Write your Python solution here\n" },
+  java: { name: "Java", mode: "text/x-java", starter: "// Write your Java solution here\n" },
+  cpp: { name: "C++", mode: "text/x-c++src", starter: "// Write your C++ solution here\n" },
+  javascript: { name: "JavaScript", mode: "javascript", starter: "// Write your JavaScript solution here\n" },
+  go: { name: "Go", mode: "go", starter: "// Write your Go solution here\n" }
+};
+
+function getSelectedLanguageName() {
+  return languageSettings[languageSelect.value].name;
+}
+
+// Turns the plain text box into a highlighted code editor. If the editor library didn't load, the plain box still works.
+function setUpCodeEditor() {
+  if (typeof CodeMirror === "undefined") {
+    return;
+  }
+  codeEditor = CodeMirror.fromTextArea(codeBox, {
+    mode: languageSettings[languageSelect.value].mode,
+    theme: "material-darker",
+    lineNumbers: true,
+    indentUnit: 4,
+    tabSize: 4,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    extraKeys: {
+      Tab: function (editor) {
+        editor.replaceSelection("    ");
+      }
+    }
+  });
+}
+
+function getCodeText() {
+  if (codeEditor !== null) {
+    return codeEditor.getValue();
+  }
+  return codeBox.value;
+}
+
+function setCodeText(text) {
+  if (codeEditor !== null) {
+    codeEditor.setValue(text);
+  } else {
+    codeBox.value = text;
+  }
+}
+
+// Swaps the starter comment and highlighting when someone picks a different language.
+function changeLanguage() {
+  var settings = languageSettings[languageSelect.value];
+  var currentCode = getCodeText().trim();
+  var isOnlyStarterText = false;
+  var languageKeys = Object.keys(languageSettings);
+  for (var index = 0; index < languageKeys.length; index++) {
+    if (currentCode === languageSettings[languageKeys[index]].starter.trim()) {
+      isOnlyStarterText = true;
+    }
+  }
+  if (currentCode === "" || isOnlyStarterText) {
+    setCodeText(settings.starter);
+  }
+  if (codeEditor !== null) {
+    codeEditor.setOption("mode", settings.mode);
+  }
+}
 var microphoneButton = document.getElementById("microphoneButton");
 var sendButton = document.getElementById("sendButton");
 var hintButton = document.getElementById("hintButton");
@@ -595,8 +688,12 @@ function addCandidateTurn(text) {
 
 // Saves the code box as a new snapshot, but only if it changed since the last one.
 function saveCodeSnapshotIfChanged() {
-  var currentCode = codeBox.value.replace(/\s+$/, "");
+  var currentCode = getCodeText().replace(/\s+$/, "");
   if (currentCode.trim() === "") {
+    return false;
+  }
+  // Don't save a snapshot that's only the starter comment.
+  if (currentCode.trim() === languageSettings[languageSelect.value].starter.trim()) {
     return false;
   }
   if (currentCode === lastSavedCode) {
@@ -604,7 +701,7 @@ function saveCodeSnapshotIfChanged() {
   }
   codeSnapshotCount = codeSnapshotCount + 1;
   var recordId = "C" + codeSnapshotCount;
-  transcript.push({ speaker: "code", id: recordId, text: currentCode });
+  transcript.push({ speaker: "code", id: recordId, text: currentCode, language: getSelectedLanguageName() });
   addMessageBubble("code", currentCode, recordId);
   lastSavedCode = currentCode;
   return true;
@@ -639,6 +736,7 @@ function buildCodingInterviewerInstructions() {
   var instructions = "You are a friendly but realistic technical interviewer at a software company, running a spoken mock coding interview. ";
   instructions = instructions + "The candidate is answering out loud, so their messages come from speech-to-text and may contain filler words, restarts, or misspelled technical terms. Read past that.\n\n";
   instructions = instructions + "The question is: " + selectedQuestion.title + "\n" + selectedQuestion.prompt + "\nExample:\n" + selectedQuestion.example + "\n\n";
+  instructions = instructions + "The candidate has chosen to write code in " + getSelectedLanguageName() + ". If they write code, judge it as " + getSelectedLanguageName() + " code.\n\n";
   instructions = instructions + "Rules:\n";
   instructions = instructions + "- Keep every reply short: one to three sentences, since it will be read aloud.\n";
   instructions = instructions + "- Never give away the full solution or write code for the candidate.\n";
@@ -665,7 +763,7 @@ function buildConversationTurns() {
       content = "(The candidate asks for a hint.)";
     }
     if (entry.speaker === "code") {
-      content = "(The candidate's current code, snapshot " + entry.id + ":)\n" + entry.text;
+      content = "(The candidate's current " + entry.language + " code, snapshot " + entry.id + ":)\n" + entry.text;
     }
     var lastTurn = turns[turns.length - 1];
     if (lastTurn.role === role) {
@@ -780,13 +878,12 @@ function beginInterview() {
   hintsGiven = 0;
   conversation.innerHTML = "";
   answerBox.value = "";
-  codeBox.value = "";
-  codeDrawer.open = false;
+  setCodeText(languageSettings[languageSelect.value].starter);
   if (selectedQuestion.kind === "behavioral") {
-    codeDrawer.hidden = true;
+    codeSection.hidden = true;
     answerBox.placeholder = "Tell your story the way you would out loud…";
   } else {
-    codeDrawer.hidden = false;
+    codeSection.hidden = false;
     answerBox.placeholder = "Talk through your approach the way you would out loud…";
   }
   document.getElementById("questionLabel").textContent = selectedQuestion.title + " · " + selectedQuestion.difficulty;
@@ -795,6 +892,10 @@ function beginInterview() {
   setupSection.hidden = true;
   reportSection.hidden = true;
   interviewSection.hidden = false;
+  // The editor has to re-measure itself after it becomes visible.
+  if (codeEditor !== null) {
+    codeEditor.refresh();
+  }
   composer.hidden = false;
   askInterviewer();
 }
@@ -846,7 +947,7 @@ function buildEvidenceText() {
     } else if (entry.speaker === "candidate") {
       lines.push("[" + entry.id + "] CANDIDATE SAID: " + entry.text);
     } else if (entry.speaker === "code") {
-      lines.push("[" + entry.id + "] CANDIDATE CODE SNAPSHOT:\n" + entry.text + "\n[end of " + entry.id + "]");
+      lines.push("[" + entry.id + "] CANDIDATE CODE SNAPSHOT (" + entry.language + "):\n" + entry.text + "\n[end of " + entry.id + "]");
     } else {
       lines.push("(Candidate asked for a hint.)");
     }
@@ -877,7 +978,7 @@ function buildGradingPrompt() {
   if (isBehavioral) {
     prompt = prompt + "- Judge only the story the candidate told. Never assume details they didn't say.\n";
   } else {
-    prompt = prompt + "- If the candidate wrote no code, code is not_demonstrated.\n";
+    prompt = prompt + "- If the candidate wrote no code, code is not_demonstrated. Judge any code as the language shown on its snapshot.\n";
     prompt = prompt + "- You did not run any code. When you talk about code, describe what you see from reading it. Never claim it passed tests, produced output, or was executed.\n";
   }
   prompt = prompt + "- comment: one or two plain sentences written to the candidate as \"you\", explaining the score or what was missing.\n";
@@ -1243,6 +1344,8 @@ answerBox.addEventListener("keydown", function (event) {
   }
 });
 
+languageSelect.addEventListener("change", changeLanguage);
+setUpCodeEditor();
 renderQuestionLists();
 setUpSpeechRecognition();
 </script>
